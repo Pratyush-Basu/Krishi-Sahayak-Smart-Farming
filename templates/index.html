@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Agriculture</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+</head>
+    
+<body>
+    
+<!--<{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="max-width:900px;margin:16px auto;padding:0 20px;">
+      {% for category, message in messages %}
+        <div style="padding:12px 16px;border-radius:8px;margin-bottom:8px;text-align:center;
+          {% if category == 'success' %}background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;
+          {% elif category == 'danger' %}background:#fce4ec;color:#c62828;border:1px solid #ef9a9a;
+          {% elif category == 'warning' %}background:#fff3e0;color:#e65100;border:1px solid #ffcc80;
+          {% else %}background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}-->
+
+<header>
+ <div class="logo">
+  <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Krishi Sahayak Logo">
+</div>  
+    <nav>
+         <ul class="navlinks">
+        <li><a href="#featuree">Features</a></li>
+        <li><a href="#workingarea">How it Works</a></li>
+        <li><a href="#aboutt">About</a></li>
+        <li><a href="#con"> Contact </a></li>
+        <li>
+          <select>
+          <option value="English">English</option>
+          <option value="Bengali">Bengali</option>
+          <option value="Hindi">Hindi</option>
+        </select>
+        </li>
+      </ul>
+    </nav>
+</header>
+
+  
+
+  <section class="hero">
+    <div class="auth-btn">
+  <a href="{{ url_for('auth.login') }}" class="login-btn">
+    Login / Sign Up
+  </a>
+</div>
+
+    
+   <br>
+   <br>
+    <h1>Transform Your Farming with AI & IoT</h1>
+    <h3><pre>Increase crop yield by 40% with intelligent crop recommendation,
+       disease detection, and smart irrigation.</pre></h3>
+    
+    <div class="buttons">
+      <a href="{{ url_for('auth.login') }}" class="btn primary">Get Started</a>
+      <a href="#workingarea" class="btn secondary">Learn More</a>
+    </div>
+  </section>
+
+  <section class="solutions">
+    <h2 id="featuree" >Our Smart Solutions</h2>
+    <p>Powered by AI and IoT to revolutionize agriculture.</p>
+    <div class="cards">
+      <div class="card fade-in">
+        <h3>🌾 Crop Recommendation</h3>
+         <p>AI-powered system recommends the best crop to grow based on environmental conditions.</p>
+      </div>
+      <div class="card fade-in">
+        <h3>🧪 Fertilizer Guide</h3>
+        <p>Get precise fertilizer recommendations based on soil nutrient levels and crop type.</p>
+      </div>
+      <div class="card fade-in">
+        <h3>🩺 Disease Detection</h3>
+        <p>Upload leaf images for instant AI diagnosis using CNN deep learning with treatment suggestions.</p>
+      </div>
+      <div class="card fade-in">
+        <h3>💧 Smart Irrigation</h3>
+        <p>IoT-based system using automated sensors to monitor soil moisture and conserve water.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="process">
+    <h2 id="workingarea">How It Works</h2>
+    <div class="steps">
+      <div class="step">1️⃣ Input Data</div>
+      <div class="step">2️⃣ AI Analysis</div>
+      <div class="step">3️⃣ Get Results</div>
+      <div class="step">4️⃣ Take Action</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div>
+        <h4 id="aboutt">About Us</h4>
+        <p>Transforming agriculture using AI and IoT technology.
+We aim to empower farmers with intelligent decision-making tools for improved productivity, sustainability, and efficient resource management.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#">Features</a></li>
+          <li><a href="#">Pricing</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#help">Help Center</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 id="con">Contact</h4>
+        <p>Email: info@xyz.com</p>
+        <p>Phone: +91 5645654565</p>
+        <p>Location: Kolkata, West Bengal</p>
+      </div>
+    </div>
+    <p class="footer-bottom">&copy; 2025 Krishi - সহায়ক. All rights reserved.</p>
+  </footer>
+
+
+
+</body>
+</html>

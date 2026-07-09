@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>Register - Krishi-Sahayak</title>
+
+    <meta
+        name="description"
+        content="Create an account on Krishi-Sahayak Smart Farming Platform"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/log.css') }}"
+    />
+
+</head>
+
+<body>
+
+<script>
+    window.FIREBASE_CONFIG = {{ firebase_config | tojson }};
+</script>
+
+<div class="background">
+
+    <!-- Signup form shown by default on the register page -->
+
+    <div class="signup-container" id="signupBox">
+
+        <h2>Sign Up</h2>
+
+        <form id="signupForm">
+
+            <div class="input-group">
+                <label>Full Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    placeholder="Enter your full name"
+                    required
+                />
+            </div>
+
+            <div class="input-group">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    required
+                />
+            </div>
+
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    placeholder="Enter phone number"
+                    pattern="[0-9]{10}"
+                    required
+                />
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input
+                    type="password"
+                    id="newPassword"
+                    placeholder="Enter a strong password"
+                    required
+                />
+            </div>
+
+            <button type="submit" id="registerBtn">
+                Register
+            </button>
+
+        </form>
+
+        <p class="register-link">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">
+                Login
+            </a>
+        </p>
+
+    </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    updateProfile,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseApp = initializeApp(window.FIREBASE_CONFIG);
+
+const auth = getAuth(firebaseApp);
+
+document.getElementById("signupForm").addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const name     = document.getElementById("name").value;
+    const email    = document.getElementById("email").value;
+    const password = document.getElementById("newPassword").value;
+
+    const btn = document.getElementById("registerBtn");
+
+btn.disabled = true;
+btn.textContent = "Registering...";
+
+try {
+
+    const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+    );
+
+    const user = userCred.user;
+
+    await updateProfile(user, {
+        displayName: name
+    });
+
+    const idToken = await user.getIdToken();
+
+    const res = await fetch("/auth/session", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            idToken: idToken,
+            uid: user.uid,
+            email: user.email,
+            display_name: name,
+            photo_url: ""
+        })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+
+        await Swal.fire({
+            icon: "success",
+            title: "Registration Successful!",
+            text: "Your account has been created. Welcome!",
+            timer: 2000,
+            showConfirmButton: false,
+        });
+
+        window.location.href = data.redirect || "/dashboard";
+
+    } else {
+
+        Swal.fire({
+            icon: "success",
+            title: "Account Created!",
+            text: "You can now login with your credentials.",
+        });
+
+        window.location.href = "{{ url_for('auth.login') }}";
+    }
+
+} catch (error) {
+
+    Swal.fire(
+        "Registration Error",
+        error.message,
+        "error"
+    );
+
+    btn.disabled = false;
+    btn.textContent = "Register";
+}
+
+});
+
+</script>
+
+</body>
+</html>

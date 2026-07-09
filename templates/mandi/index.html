@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mandi Prices | Krishi-Sahayak</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7f5; color: #1a1a1a; }
+
+    .page-header {
+      background: linear-gradient(135deg, #1a5c1a, #2d7a2d);
+      padding: 24px 32px; color: #fff;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .page-header h1 { font-size: 22px; font-weight: 600; }
+    .page-header p  { color: #a8d8a8; font-size: 13px; margin-top: 4px; }
+    .header-left { flex: 1; min-width: 200px; }
+    .back-link {
+      color: #c8e6c9; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 6px;
+    }
+    .back-link:hover { color: #fff; }
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #fff;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #76ff76;
+           animation: pulse 1.5s infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+    .filters {
+      background: #fff; border-radius: 12px; padding: 16px 20px;
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
+    .filter-group label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .filter-group select {
+      padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 14px; color: #1a1a1a; background: #fff; cursor: pointer;
+    }
+    .filter-group select:focus { outline: none; border-color: #2d7a2d; }
+    .btn-fetch {
+      padding: 9px 22px; background: #2d7a2d; color: #fff;
+      border: none; border-radius: 8px; font-size: 14px;
+      cursor: pointer; font-weight: 500; align-self: flex-end; white-space: nowrap;
+    }
+    .btn-fetch:hover { background: #1a5c1a; }
+
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 14px; margin-bottom: 20px; }
+    .metric-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .metric-card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-card .value { font-size: 22px; font-weight: 600; color: #1a1a1a; margin: 4px 0 2px; }
+    .metric-card .sub   { font-size: 12px; }
+    .neutral { color: #888; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card { background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .card h3 { font-size: 14px; color: #444; font-weight: 600; margin-bottom: 14px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left; font-size: 11px; color: #888; font-weight: 600;
+      padding: 0 6px 8px 0; border-bottom: 1px solid #eee; text-transform: uppercase;
+    }
+    td { padding: 9px 6px 9px 0; border-bottom: 1px solid #f0f0f0; color: #1a1a1a; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .modal-price { font-weight: 600; color: #1a1a1a; }
+
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .tab {
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+      border: 1px solid #ddd; background: transparent; color: #666;
+    }
+    .tab.active { background: #2d7a2d; color: #fff; border-color: #2d7a2d; }
+    .tab:hover:not(.active) { background: #f0f0f0; }
+
+    .loader { display: none; text-align: center; padding: 30px; color: #888; font-size: 14px; }
+    .spinner {
+      width: 28px; height: 28px; border: 3px solid #ddd;
+      border-top-color: #2d7a2d; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg { color: #c0392b; font-size: 13px; padding: 10px; text-align: center; }
+    .empty-msg { text-align: center; color: #aaa; padding: 20px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <a href="{{ url_for('main.dashboard') }}" class="back-link">← Back to Dashboard</a>
+    <h1>📊 Mandi Price Dashboard</h1>
+    <p>Live &amp; historical market prices · Source: data.gov.in (Agmarknet)</p>
+  </div>
+  <div class="live-badge">
+    <span class="dot"></span> Live Data
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>State / UT</label>
+      <select id="stateFilter">
+        <optgroup label="States">
+          <option value="Andhra Pradesh">Andhra Pradesh</option>
+          <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+          <option value="Assam">Assam</option>
+          <option value="Bihar">Bihar</option>
+          <option value="Chhattisgarh">Chhattisgarh</option>
+          <option value="Goa">Goa</option>
+          <option value="Gujarat">Gujarat</option>
+          <option value="Haryana">Haryana</option>
+          <option value="Himachal Pradesh">Himachal Pradesh</option>
+          <option value="Jharkhand">Jharkhand</option>
+          <option value="Karnataka">Karnataka</option>
+          <option value="Kerala">Kerala</option>
+          <option value="Madhya Pradesh">Madhya Pradesh</option>
+          <option value="Maharashtra">Maharashtra</option>
+          <option value="Manipur">Manipur</option>
+          <option value="Meghalaya">Meghalaya</option>
+          <option value="Mizoram">Mizoram</option>
+          <option value="Nagaland">Nagaland</option>
+          <option value="Odisha">Odisha</option>
+          <option value="Punjab">Punjab</option>
+          <option value="Rajasthan">Rajasthan</option>
+          <option value="Sikkim">Sikkim</option>
+          <option value="Tamil Nadu">Tamil Nadu</option>
+          <option value="Telangana">Telangana</option>
+          <option value="Tripura">Tripura</option>
+          <option value="Uttar Pradesh">Uttar Pradesh</option>
+          <option value="Uttarakhand">Uttarakhand</option>
+          <option value="West Bengal" selected>West Bengal</option>
+        </optgroup>
+        <optgroup label="Union Territories">
+          <option value="Andaman and Nicobar">Andaman &amp; Nicobar</option>
+          <option value="Chandigarh">Chandigarh</option>
+          <option value="Dadra and Nagar Haveli">Dadra &amp; Nagar Haveli</option>
+          <option value="Daman and Diu">Daman &amp; Diu</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Jammu and Kashmir">Jammu &amp; Kashmir</option>
+          <option value="Ladakh">Ladakh</option>
+          <option value="Lakshadweep">Lakshadweep</option>
+          <option value="Puducherry">Puducherry</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Commodity</label>
+      <select id="cropFilter">
+        <option value="">— All Commodities —</option>
+        <optgroup label="Cereals">
+          <option value="Rice">Rice</option>
+          <option value="Maize">Maize</option>
+        </optgroup>
+        <optgroup label="Fibres">
+          <option value="Jute">Jute</option>
+          <option value="Cotton">Cotton</option>
+        </optgroup>
+        <optgroup label="Fruits">
+          <option value="Apple">Apple</option>
+          <option value="Banana">Banana</option>
+          <option value="Grapes">Grapes</option>
+          <option value="Mango">Mango</option>
+          <option value="Musk Melon">Musk Melon</option>
+          <option value="Orange">Orange</option>
+          <option value="Papaya">Papaya</option>
+          <option value="Pomegranate">Pomegranate</option>
+          <option value="Water Melon">Water Melon</option>
+        </optgroup>
+        <optgroup label="Nuts &amp; Plantation">
+          <option value="Coconut">Coconut</option>
+        </optgroup>
+        <optgroup label="Pulses">
+          <option value="Arhar (Tur/Red Gram)(Whole)">Arhar / Pigeon Peas</option>
+          <option value="Black Gram">Black Gram</option>
+          <option value="Gram">Gram (Chickpea)</option>
+          <option value="Green Gram">Green Gram (Mung)</option>
+          <option value="Lentil">Lentil</option>
+          <option value="Moth">Moth Beans</option>
+          <option value="Rajma">Rajma (Kidney Beans)</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <button class="btn-fetch" onclick="fetchPrices()">🔍 Fetch Prices</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="label">Avg Modal Price</div>
+      <div class="value" id="avgPrice">—</div>
+      <div class="sub neutral">₹ per quintal</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Highest Price</div>
+      <div class="value" id="highPrice">—</div>
+      <div class="sub" id="highCrop" style="color:#888">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Lowest Price</div>
+      <div class="value" id="lowPrice">—</div>
+      <div class="sub" id="lowCrop" style="color:#888">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Markets Found</div>
+      <div class="value" id="marketCount">—</div>
+      <div class="sub neutral">across state</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h3>📋 Live Mandi Prices</h3>
+    <div class="loader" id="tableLoader"><div class="spinner"></div> Fetching from Agmarknet...</div>
+    <div id="tableError" class="error-msg" style="display:none"></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Commodity</th>
+            <th>Market</th>
+            <th>District</th>
+            <th>Min (₹/q)</th>
+            <th>Max (₹/q)</th>
+            <th>Modal (₹/q)</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="priceTableBody">
+          <tr><td colspan="7" class="empty-msg">Select filters and click "Fetch Prices"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>📈 Price Trend — Last 30 Days</h3>
+      <div class="tab-bar">
+        <button class="tab active" onclick="fetchTrend('Rice',this)">Rice</button>
+        <button class="tab" onclick="fetchTrend('Maize',this)">Maize</button>
+        <button class="tab" onclick="fetchTrend('Black Gram',this)">Black Gram</button>
+        <button class="tab" onclick="fetchTrend('Green Gram',this)">Green Gram</button>
+        <button class="tab" onclick="fetchTrend('Gram',this)">Gram</button>
+        <button class="tab" onclick="fetchTrend('Arhar (Tur/Red Gram)(Whole)',this)">Arhar</button>
+        <button class="tab" onclick="fetchTrend('Jute',this)">Jute</button>
+      </div>
+      <div class="loader" id="chartLoader"><div class="spinner"></div> Loading trend...</div>
+      <div style="position:relative; height:200px;">
+        <canvas id="trendChart" role="img" aria-label="30-day price trend for selected crop"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🏆 Best Mandis to Sell Today</h3>
+      <div class="loader" id="mandiLoader"><div class="spinner"></div> Finding best mandis...</div>
+      <div id="bestMandiError" class="error-msg" style="display:none"></div>
+      <table>
+        <thead><tr><th>#</th><th>Market</th><th>Commodity</th><th>Modal (₹/q)</th></tr></thead>
+        <tbody id="bestMandiBody">
+          <tr><td colspan="4" class="empty-msg">Select a crop and fetch prices</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let trendChart = null;
+
+async function fetchPrices() {
+  const state = document.getElementById('stateFilter').value;
+  const crop  = document.getElementById('cropFilter').value;
+  showLoader('tableLoader', true);
+  document.getElementById('tableError').style.display = 'none';
+  try {
+    const res  = await fetch(`/mandi/api/prices?state=${encodeURIComponent(state)}&commodity=${encodeURIComponent(crop)}&limit=50`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error);
+    renderTable(json.data);
+    renderMetrics(json.data);
+    if (crop) fetchBestMandis(crop, state);
+  } catch(e) {
+    document.getElementById('tableError').textContent = '⚠️ ' + e.message;
+    document.getElementById('tableError').style.display = 'block';
+  } finally {
+    showLoader('tableLoader', false);
+  }
+}
+
+function renderTable(records) {
+  const tbody = document.getElementById('priceTableBody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No data found for this filter</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(r => `
+    <tr>
+      <td><strong>${r.commodity || '—'}</strong></td>
+      <td>${r.market   || '—'}</td>
+      <td>${r.district || '—'}</td>
+      <td>₹${Number(r.min_price   || 0).toLocaleString('en-IN')}</td>
+      <td>₹${Number(r.max_price   || 0).toLocaleString('en-IN')}</td>
+      <td class="modal-price">₹${Number(r.modal_price || 0).toLocaleString('en-IN')}</td>
+      <td style="color:#888;font-size:12px">${r.arrival_date || '—'}</td>
+    </tr>`).join('');
+}
+
+function renderMetrics(records) {
+  const prices = records.map(r => parseFloat(r.modal_price || 0)).filter(p => p > 0);
+  if (!prices.length) return;
+  const avg  = Math.round(prices.reduce((a,b) => a+b, 0) / prices.length);
+  const max  = Math.max(...prices);
+  const min  = Math.min(...prices);
+  const maxR = records.find(r => parseFloat(r.modal_price) === max);
+  const minR = records.find(r => parseFloat(r.modal_price) === min);
+  document.getElementById('avgPrice').textContent    = '₹' + avg.toLocaleString('en-IN');
+  document.getElementById('highPrice').textContent   = '₹' + max.toLocaleString('en-IN');
+  document.getElementById('highCrop').textContent    = maxR ? maxR.commodity + ' · ' + maxR.market : '';
+  document.getElementById('lowPrice').textContent    = '₹' + min.toLocaleString('en-IN');
+  document.getElementById('lowCrop').textContent     = minR ? minR.commodity + ' · ' + minR.market : '';
+  document.getElementById('marketCount').textContent = records.length;
+}
+
+async function fetchTrend(crop, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  showLoader('chartLoader', true);
+  const state = document.getElementById('stateFilter').value;
+  try {
+    const res  = await fetch(`/mandi/api/trend?commodity=${encodeURIComponent(crop)}&state=${encodeURIComponent(state)}&days=30`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error);
+    drawChart(crop, json.data);
+  } catch(e) {
+    console.error('Trend error:', e);
+  } finally {
+    showLoader('chartLoader', false);
+  }
+}
+
+function drawChart(crop, data) {
+  if (!data.length) return;
+  const labels = data.map(d => d.date);
+  const values = data.map(d => parseFloat(d.modal_price));
+  const color  = values[values.length-1] >= values[0] ? '#2d7a2d' : '#c0392b';
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: crop + ' (₹/q)', data: values,
+        borderColor: color, backgroundColor: color + '22',
+        fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 6, font:{size:11}, color:'#888' }, grid:{ display:false } },
+        y: { ticks: { font:{size:11}, color:'#888', callback: v => '₹'+Number(v).toLocaleString('en-IN') } }
+      }
+    }
+  });
+}
+
+async function fetchBestMandis(crop, state) {
+  showLoader('mandiLoader', true);
+  document.getElementById('bestMandiError').style.display = 'none';
+  try {
+    const res  = await fetch(`/mandi/api/best-mandis?commodity=${encodeURIComponent(crop)}&state=${encodeURIComponent(state)}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error);
+    const tbody = document.getElementById('bestMandiBody');
+    if (!json.data.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No data found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = json.data.map((r, i) => `
+      <tr>
+        <td style="color:#2d7a2d;font-weight:700">${i+1}</td>
+        <td>${r.market    || '—'}</td>
+        <td>${r.commodity || '—'}</td>
+        <td class="modal-price">₹${Number(r.modal_price).toLocaleString('en-IN')}</td>
+      </tr>`).join('');
+  } catch(e) {
+    document.getElementById('bestMandiError').textContent = '⚠️ ' + e.message;
+    document.getElementById('bestMandiError').style.display = 'block';
+  } finally {
+    showLoader('mandiLoader', false);
+  }
+}
+
+function showLoader(id, show) {
+  document.getElementById(id).style.display = show ? 'block' : 'none';
+}
+
+window.onload = () => {
+  const firstTab = document.querySelector('.tab');
+  if (firstTab) fetchTrend('Rice', firstTab);
+};
+</script>
+</body>
+</html>

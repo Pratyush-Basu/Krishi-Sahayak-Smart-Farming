@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Settings — Krishi-Sahayak</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/log.css') }}" />
+
+  <style>
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4fdf4;
+      color: #333;
+    }
+
+    .settings-header {
+      background: rgba(34, 139, 34, 0.95);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .settings-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .settings-header a {
+      color: #c8e6c9;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .settings-header a:hover {
+      color: #fff;
+    }
+
+    .settings-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .settings-section {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .settings-section h3 {
+      font-size: 1rem;
+      color: #2e7d32;
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e8f5e9;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      font-weight: 500;
+    }
+
+    .setting-desc {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .setting-value {
+      color: #2e7d32;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .about-text {
+      color: #666;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    .about-text strong {
+      color: #2e7d32;
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="settings-header">
+    <a href="{{ url_for('main.dashboard') }}">← Dashboard</a>
+    <h2>⚙ Settings</h2>
+</div>
+
+<div class="settings-container">
+
+    <div class="settings-section">
+
+        <h3>🌐 Language &amp; Region</h3>
+
+        <div class="setting-row">
+
+            <div>
+                <div class="setting-label">App Language</div>
+                <div class="setting-desc">Change display language</div>
+            </div>
+
+            <div class="setting-value">English</div>
+
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Default State</div>
+                <div class="setting-desc">For mandi prices and weather</div>
+            </div>
+            <div class="setting-value">West Bengal</div>
+        </div>
+
+    </div>
+
+
+    <div class="settings-section">
+
+        <h3>🔔 Notifications</h3>
+
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Weather Alerts</div>
+                <div class="setting-desc">Rain and storm warnings</div>
+            </div>
+            <div class="setting-value">On</div>
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <div class="setting-label">Mandi Price Updates</div>
+                <div class="setting-desc">Daily price notifications</div>
+            </div>
+            <div class="setting-value">Off</div>
+        </div>
+
+    </div>
+
+
+    <div class="settings-section">
+
+        <h3>🔗 Quick Links</h3>
+
+        <div class="setting-row">
+            <div class="setting-label">My Profile</div>
+            <a href="{{ url_for('profile.view_profile') }}"
+               class="setting-value"
+               style="text-decoration:none;">
+                Open ↗
+            </a>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-label">Logout</div>
+            <a href="{{ url_for('auth.logout') }}"
+               class="setting-value"
+               style="text-decoration:none; color:#c62828;">
+                Logout ↗
+            </a>
+        </div>
+
+    </div>
+
+
+    <div class="settings-section">
+
+        <h3>ℹ️ About</h3>
+
+        <p class="about-text">
+            <strong>Krishi-Sahayak</strong> (কৃষি সহায়ক) is an AI-powered smart farming platform
+            designed to help Indian farmers with crop recommendation, disease detection,
+            smart irrigation, live mandi prices, and more.
+        </p>
+
+        <p class="about-text">
+            Built with Flask, Firebase, TensorFlow, and Gemini AI.
+        </p>
+
+        <span class="version-badge">
+            Version 2.0 — Unified Architecture
+        </span>
+
+    </div>
+
+</div>
+
+</body>
+</html>

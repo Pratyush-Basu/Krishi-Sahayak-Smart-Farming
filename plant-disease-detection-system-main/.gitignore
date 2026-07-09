@@ -1,6 +1,0 @@
-*.keras
-*.h5
-*.pt
-*.onnx
-model/
-.env

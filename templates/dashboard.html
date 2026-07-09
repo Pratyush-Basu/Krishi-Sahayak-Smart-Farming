@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Dashboard - Krishi-Sahayak</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/log.css') }}" />
+
+</head>
+
+<body>
+
+<!-- Animated background slideshow (from original dashboard.html) -->
+<div class="background-slider"></div>
+
+<header>
+
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}"
+             alt="Krishi Sahayak Logo" />
+    </div>
+
+    <nav>
+
+        <ul class="navlinks">
+
+            <li>
+                <a href="{{ url_for('crop.crop_page') }}">
+                    Crop Recommendation
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('fertilizer.fertilizer_page') }}">
+                    Fertilizer
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('disease.disease_page') }}">
+                    Disease
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('mandi.mandi_page') }}">
+                    Live Mandi Price
+                </a>
+            </li>
+
+            <li>
+                <a href="https://krishi-sahayak-nof8.onrender.com/">
+                    Smart Irrigation
+                </a>
+            </li>
+
+            <!--<li>
+                <a href="{{ url_for('chatbot.chatbot_page') }}">
+                    Chatbot
+                </a>
+            </li>-->
+
+            <!-- Profile dropdown -->
+
+            <li>
+                <a href="{{ url_for('profile.view_profile') }}"
+                   style="display:flex; align-items:center; gap:6px;">
+
+                    <img src="{{ photo_url }}"
+                         alt="Profile"
+                         style="width:32px;
+                                height:32px;
+                                border-radius:50%;
+                                object-fit:cover;
+                                border:2px solid #fff;" />
+
+                    {{ user.display_name or user.email }}
+
+                </a>
+            </li>
+
+            <li class="logout">
+                <a href="#" onclick="handleLogout()">
+                    Logout
+                </a>
+            </li>
+
+        </ul>
+
+    </nav>
+
+</header>
+
+
+<section class="welcome">
+
+    <h2>
+        Welcome,
+        <span id="farmerName" class="farmer-name">
+            {{ user.display_name or 'Krishi - সহায়ক' }}
+        </span>
+    </h2>
+
+    <p>
+        Empowering your farm with AI &amp; IoT
+    </p>
+
+</section>
+
+
+<section class="features">
+
+    <div class="card">
+        <h3>🌾 Crop Recommendation</h3>
+        <p>AI-based crop suggestions.</p>
+
+        <button
+            onclick="location.href='{{ url_for('crop.crop_page') }}'">
+            Start
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>🧪 Fertilizer Guide</h3>
+        <p>Optimized fertilizer plans.</p>
+
+        <button
+            onclick="location.href='{{ url_for('fertilizer.fertilizer_page') }}'">
+            Explore
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>🌿 Disease Detection</h3>
+        <p>Upload leaf images.</p>
+
+        <button
+            onclick="location.href='{{ url_for('disease.disease_page') }}'">
+            Detect
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>💧 Smart Irrigation</h3>
+        <p>Water-saving automation.</p>
+
+        <button onclick="window.location.href='https://krishi-sahayak-nof8.onrender.com/'">
+            Configure
+        </button>
+    </div>
+
+    <div class="card">
+        <h3>💰 Mandi Prices</h3>
+        <p>Live agricultural market prices.</p>
+
+        <button
+            onclick="location.href='{{ url_for('mandi.mandi_page') }}'">
+            View Prices
+        </button>
+    </div>
+
+    <!--<div class="card">
+        <h3>🤖 AI Chatbot</h3>
+        <p>Ask farming questions anytime.</p>
+
+        <button
+            onclick="location.href='{{ url_for('chatbot.chatbot_page') }}'">
+            Chat Now
+        </button>
+    </div>-->
+
+</section>
+
+
+<!-- Weather + Utility Floating Button (preserved from original) -->
+
+<div class="weather-btn" onclick="toggleWeather()">&lt;</div>
+
+<div class="weather-popup" id="weatherPopup">
+
+    <h3>🌦 Weather</h3>
+    <a href="{{ url_for('weather.weather_page') }}">
+        Open Weather
+    </a>
+
+    <h3>📍 Nearby Finder</h3>
+    <a href="{{ url_for('nearby.nearby_page') }}">
+        Find Nearby
+    </a>
+
+    <h3>💰 Farm Expense &amp; Profit Calculator</h3>
+    <a href="{{ url_for('profit.profit_page') }}">
+        Calculate Expenses
+    </a>
+
+    <h3>⚙️ Settings</h3>
+    <a href="{{ url_for('settings.settings_page') }}">
+        App Settings
+    </a>
+
+</div>
+
+
+<footer>
+    <p>&copy; 2025 Krishi - সহায়ক</p>
+</footer>
+
+
+<!-- Dialogflow Messenger -->
+
+<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+
+<df-messenger
+    intent="WELCOME"
+    chat-title="Krishi Sahayak 🌱"
+    agent-id="d53a864f-5947-4fbc-9323-7a3f70e3cb7c"
+    language-code="en"
+    expand="false">
+</df-messenger>
+
+
+<script>
+    window.FIREBASE_CONFIG = {{ firebase_config | tojson }};
+</script>
+
+<script>
+
+// ── Utility Functions ─────────────────────────────────────────────
+
+function toggleWeather() {
+
+    const popup = document.getElementById("weatherPopup");
+
+    popup.style.display =
+        (popup.style.display === "block")
+            ? "none"
+            : "block";
+}
+
+// ── Logout: sign out Firebase + call Flask /logout ─────────────────
+
+async function handleLogout() {
+
+    try {
+
+        // Sign out from Firebase (client side)
+        // Dynamic import to avoid module issues
+        const { initializeApp } = await import(
+    "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"
+);
+
+const { getAuth, signOut } = await import(
+    "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
+);
+
+// Flask injects config as a global (set below)
+
+if (window.FIREBASE_CONFIG) {
+
+    const fbApp = initializeApp(
+        window.FIREBASE_CONFIG,
+        "logout-app"
+    );
+
+    const auth = getAuth(fbApp);
+
+    await signOut(auth).catch(() => {});
+}
+
+} catch (e) {
+    /* ignore firebase signout errors */
+}
+
+// Always redirect to Flask /logout (clears server session)
+
+window.location.href = "{{ url_for('auth.logout') }}";
+
+}
+
+// ── Animated farmer names (preserved from original dashboard.js) ─────────────────
+
+const farmerNames = [
+
+    {
+        name: "{{ user.display_name or 'Annadata' }}",
+        color: "#2e8b57"
+    },
+
+    {
+        name: "Kisan Dada",
+        color: "#ff8c00"
+    },
+
+    {
+        name: "Krishi Mitra",
+        color: "#1e90ff"
+    },
+
+    {
+        name: "Farmer Bhai",
+        color: "#8b0000"
+    }
+
+];
+
+let idx = 0;
+
+const nameEl = document.getElementById("farmerName");
+
+if (nameEl) {
+
+    setInterval(() => {
+
+        idx = (idx + 1) % farmerNames.length;
+
+        nameEl.textContent = farmerNames[idx].name;
+        nameEl.style.color = farmerNames[idx].color;
+
+        nameEl.style.animation = "none";
+        nameEl.offsetHeight; // reflow
+        nameEl.style.animation = "fadeSlide 1s ease-in-out";
+
+    }, 2000);
+
+}
+
+</script>
+
+</body>
+</html>

@@ -6,7 +6,7 @@ body, html {
 }
 
 .background {
-  background: url('forest-agriculture.jpg') no-repeat center center/cover;
+  background: url('../images/forest-agriculture.jpg') no-repeat center center/cover;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -118,11 +118,11 @@ body {
 }
 
 @keyframes slideImages {
-  0%   { background-image: url('img1.jpeg'); }
-  25%  { background-image: url('img2.jpeg'); }
-  50%  { background-image: url('img3.jpeg'); }
-  75%  { background-image: url('img4.jpeg'); }
-  100% { background-image: url('img1.jpeg'); }
+  0%   { background-image: url('../images/img1.jpeg'); }
+  25%  { background-image: url('../images/img2.jpeg'); }
+  50%  { background-image: url('../images/img3.jpeg'); }
+  75%  { background-image: url('../images/img4.jpeg'); }
+  100% { background-image: url('../images/img1.jpeg'); }
 }
 
 header {

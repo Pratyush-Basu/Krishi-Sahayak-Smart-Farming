@@ -76,7 +76,32 @@ build/
 
 
 
-# ML models
+# ML models (large binary files)
 *.pkl
-crop_recommendation_system/*.pkl
+*.keras
+*.h5
+
+# ===============================
+# Krishi-Sahayak Unified App
+# ===============================
+
+# Secret files — NEVER commit these
+instance/
+instance/firebase_service_account.json
+
+# User uploads — personal data, not code
+uploads/
+
+# Application logs
+logs/
+
+# Trained model binaries (too large for git)
+trained_models/
+
+# Sub-module .env files (now unified)
 crop_recommendation_system/.env
+plant-disease-detection-system-main/.env
+Ai_bot_backend_agri/.env
+Irrigation/.env
+
+.cursor

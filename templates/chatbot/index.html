@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chatbot - Krishi-Sahayak</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/log.css') }}" />
+    <style>
+        body { margin: 0; min-height: 100vh; background: #f4fdf4; }
+        .chat-header {
+            background: rgba(34, 139, 34, 0.95);
+            color: #fff;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .chat-header a {
+            color: #c8e6c9;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .chat-header a:hover { color: #fff; }
+        .chat-header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            flex: 1;
+        }
+        .chat-main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .chat-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .chat-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+        df-messenger {
+            --df-messenger-bot-message: #f1f8e9;
+            --df-messenger-user-message: #e3f2fd;
+            --df-messenger-button-titlebar-color: #2e7d32;
+            --df-messenger-chat-background-color: #ffffff;
+            --df-messenger-font-color: #000;
+            --df-messenger-send-icon: #2e7d32;
+            --df-messenger-microphone-color: #2e7d32;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+<header class="chat-header">
+    <a href="{{ url_for('main.dashboard') }}">← Dashboard</a>
+    <h1>🤖 Krishi Sahayak Chatbot</h1>
+</header>
+
+<main class="chat-main">
+    <div class="chat-card">
+        <h2 class="text-success" style="color:#2e7d32; margin-top:0;">Ask anything about farming</h2>
+        <p>Use the chat widget in the bottom-right corner to ask crop, weather, irrigation, and market questions in English or Bengali.</p>
+    </div>
+</main>
+
+<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+<df-messenger
+    intent="WELCOME"
+    chat-title="Krishi Sahayak 🌱"
+    agent-id="d53a864f-5947-4fbc-9323-7a3f70e3cb7c"
+    language-code="en"
+    expand="true">
+</df-messenger>
+
+</body>
+</html>

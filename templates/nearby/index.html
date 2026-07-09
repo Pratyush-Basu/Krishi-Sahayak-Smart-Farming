@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSky — Nearby Storage & Supply Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --soil: #3E2C20;
+            --field: #31502F;
+            --field-dark: #1F3820;
+            --wheat: #D9A652;
+            --wheat-light: #F2E2B8;
+            --sky: #6D93A8;
+            --cream: #F7F2E6;
+            --paper: #FFFCF5;
+            --alert: #B4472B;
+            --ink: #25241F;
+            --line: rgba(62, 44, 32, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Work Sans', sans-serif;
+            background: transparent;
+            color: var(--ink);
+        }
+
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 16, 10, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+            backdrop-filter: blur(2px);
+        }
+
+        .overlay.open {
+            display: flex;
+            animation: fadeIn .2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: var(--paper);
+            width: 100%;
+            max-width: 960px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            box-shadow: 0 30px 70px rgba(20, 16, 10, 0.4);
+            animation: riseIn .28s ease;
+            border: 1px solid var(--line);
+        }
+
+        @keyframes riseIn {
+            from {
+                transform: translateY(18px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--field) 0%, var(--field-dark) 100%);
+            color: var(--wheat-light);
+            padding: 24px 28px 20px;
+            border-radius: 20px 20px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .modal-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+            color: var(--wheat);
+            font-weight: 600;
+            margin: 0 0 6px;
+        }
+
+        .modal-title {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: var(--wheat-light);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .locate-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .locate-row input {
+            flex: 1;
+            min-width: 160px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--wheat-light);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 14px;
+        }
+
+        .locate-row input::placeholder {
+            color: rgba(242, 226, 184, 0.6);
+        }
+
+        .locate-row button {
+            padding: 9px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: var(--wheat);
+            color: var(--soil);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .locate-row button:hover {
+            background: #e7bc6c;
+        }
+
+        .locate-row .gps {
+            background: transparent;
+            color: var(--wheat-light);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .locate-row .gps:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-size: 13px;
+            color: var(--wheat-light);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .chip input {
+            accent-color: var(--wheat);
+        }
+
+        .chip.off {
+            opacity: 0.45;
+        }
+
+        .radius-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .radius-row label {
+            font-size: 12.5px;
+            color: var(--wheat-light);
+            white-space: nowrap;
+        }
+
+        .radius-row input[type=range] {
+            width: 110px;
+            accent-color: var(--wheat);
+        }
+
+        .radius-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--wheat);
+            min-width: 52px;
+        }
+
+        .modal-body {
+            padding: 22px 28px 30px;
+        }
+
+        .status-line {
+            font-size: 13px;
+            color: #7A6A55;
+            margin: 0 0 14px;
+            min-height: 18px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width:760px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #map{
+    width:100%;
+    height:420px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:#e8e3d3;
+
+    position: sticky;
+    top: 20px;
+}
+
+        .results-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .result-card {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease;
+        }
+
+        .result-card:hover {
+            border-color: var(--field);
+            background: var(--wheat-light);
+        }
+
+        .result-card.active {
+            border-color: var(--field);
+            background: var(--wheat-light);
+        }
+
+        .result-badge {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .badge-cold {
+            background: #3E7EA6;
+        }
+
+        .badge-warehouse {
+            background: #6B4423;
+        }
+
+        .badge-seed {
+            background: #4C7A3F;
+        }
+
+        .badge-fertilizer {
+            background: #B4472B;
+        }
+
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-name {
+            font-family: 'Fraunces', serif;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--soil);
+            margin: 0 0 2px;
+        }
+
+        .result-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #8A7A64;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .result-meta {
+            font-size: 12.5px;
+            color: #7A6A55;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .result-meta a {
+            color: var(--field);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .result-meta a:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state,
+        .loading-state,
+        .error-state {
+            padding: 50px 10px;
+            text-align: center;
+            color: #7A6A55;
+            font-size: 14px;
+        }
+
+        .error-state {
+            color: var(--alert);
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--line);
+            border-top-color: var(--field);
+            border-radius: 50%;
+            margin: 0 auto 14px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footnote {
+            font-size: 11.5px;
+            color: #9A8A72;
+            margin-top: 18px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .footnote a {
+            color: #7A6A55;
+        }
+
+        .leaflet-popup-content {
+            font-family: 'Work Sans', sans-serif;
+            font-size: 13px;
+        }
+
+        .leaflet-popup-content b {
+            font-family: 'Fraunces', serif;
+        }
+
+        /* Center the buttons */
+.text-center.mt-4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px !important;
+}
+
+/* Button styling */
+.text-center.mt-4 .btn {
+    min-width: 240px;
+    padding: 12px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* Hover effect */
+.text-center.mt-4 .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove default address styling */
+.text-center.mt-4 address {
+    margin: 0;
+    font-style: normal;
+}
+    </style>
+</head>
+
+<body>
+
+    <div class="overlay" id="overlay">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <div class="modal-header-row">
+                    <div>
+                        <p class="eyebrow">Storage &amp; Supply</p>
+                        <h2 class="modal-title" id="modalTitle">Nearby Finder</h2>
+                    </div>
+                    <button class="close-btn" id="closeBtn" aria-label="Close finder">✕</button>
+                </div>
+
+                <div class="locate-row">
+                    <input type="text" id="cityInput" placeholder="Search village, town or city…" />
+                    <button id="searchBtn">Search</button>
+                    <button class="gps" id="gpsBtn">📍 Use my location</button>
+                </div>
+
+                <div class="filter-row">
+                    <label class="chip"><input type="checkbox" data-cat="cold" checked> ❄️ Cold storage</label>
+                    <label class="chip"><input type="checkbox" data-cat="warehouse" checked> 📦 Warehouse</label>
+                    <label class="chip"><input type="checkbox" data-cat="seed" checked> 🌱 Seed shop</label>
+                    <label class="chip"><input type="checkbox" data-cat="fertilizer" checked> 🧪 Fertilizer shop</label>
+                    <div class="radius-row">
+                        <label for="radiusSlider">Radius</label>
+                        <input type="range" id="radiusSlider" min="1" max="30" value="10" step="1">
+                        <span class="radius-val" id="radiusVal">10 km</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <p class="status-line" id="statusLine"></p>
+                <div class="layout">
+                    <div id="map"></div>
+                    <div class="results-col" id="resultsCol">
+                        <div class="loading-state">
+                            <div class="spinner"></div>Finding your location…
+                        </div>
+                    </div>
+                </div>
+                <p class="footnote">Map &amp; place data © <a href="https://www.openstreetmap.org/copyright"
+                        target="_blank" rel="noopener">OpenStreetMap</a> contributors, via free Overpass &amp; Nominatim
+                    APIs. Cold storage entries marked ✅ come from the official Agmarknet / APEDA West Bengal cold
+                    storage registry — no key required for either source. Registry entries are placed at village/town
+                    level, not exact street addresses. Live map results depend on what's mapped in your area; smaller
+                    local shops may not appear if they haven't been added to OpenStreetMap yet.</p>
+            </div>
+            <div class="text-center mt-4">
+                <address class="btn btn-success" onclick="window.print()">
+                    🖨 Print Nearby Storage & Supply Finder
+                </address>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                    ⬅ Back to Dashboard
+                </a>
+            
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/wb-cold-storage-data.js') }}"></script>
+    <script>
+        (function () {
+            const overlay = document.getElementById('overlay');
+            const closeBtn = document.getElementById('closeBtn');
+            const resultsCol = document.getElementById('resultsCol');
+            const statusLine = document.getElementById('statusLine');
+            const cityInput = document.getElementById('cityInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const gpsBtn = document.getElementById('gpsBtn');
+            const radiusSlider = document.getElementById('radiusSlider');
+            const radiusVal = document.getElementById('radiusVal');
+            const chipInputs = document.querySelectorAll('.chip input[data-cat]');
+
+            let map, userMarker, markersLayer;
+            let mapReady = false;
+            let currentLat = null, currentLon = null;
+            let lastResults = [];
+            let loaded = false;
+            let debounceTimer = null;
+
+            const CATS = {
+                cold: { label: 'Cold storage', badge: 'badge-cold', icon: '❄️' },
+                warehouse: { label: 'Warehouse', badge: 'badge-warehouse', icon: '📦' },
+                seed: { label: 'Seed shop', badge: 'badge-seed', icon: '🌱' },
+                fertilizer: { label: 'Fertilizer shop', badge: 'badge-fertilizer', icon: '🧪' }
+            };
+
+            overlay.classList.add('open');
+
+            setTimeout(() => {
+                if (!mapReady) initMap();
+
+                if (!loaded) {
+                    locateAndLoad();
+                    loaded = true;
+                } else if (map) {
+                    map.invalidateSize();
+                }
+            }, 30);
+            closeBtn.addEventListener('click', () => {
+                window.history.back();
+            });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay.classList.remove('open'); });
+
+            radiusSlider.addEventListener('input', () => {
+                radiusVal.textContent = radiusSlider.value + ' km';
+            });
+            radiusSlider.addEventListener('change', () => {
+                if (currentLat !== null) debouncedSearch();
+            });
+            chipInputs.forEach(chip => {
+                chip.addEventListener('change', () => {
+                    chip.closest('.chip').classList.toggle('off', !chip.checked);
+                    renderResultsFromCache();
+                });
+            });
+
+            searchBtn.addEventListener('click', () => {
+                const q = cityInput.value.trim();
+                if (q) geocodeAndLoad(q);
+            });
+            cityInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { const q = cityInput.value.trim(); if (q) geocodeAndLoad(q); }
+            });
+            gpsBtn.addEventListener('click', locateAndLoad);
+
+            function debouncedSearch() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => loadPlaces(currentLat, currentLon), 400);
+            }
+
+            function initMap() {
+                map = L.map('map', { zoomControl: true }).setView([28.6139, 77.2090], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                markersLayer = L.layerGroup().addTo(map);
+                mapReady = true;
+            }
+
+            function setLoading(msg) {
+                resultsCol.innerHTML = `<div class="loading-state"><div class="spinner"></div>${msg || 'Searching nearby…'}</div>`;
+            }
+            function setError(msg) {
+                resultsCol.innerHTML = `<div class="error-state">⚠️ ${msg}</div>`;
+            }
+            function setEmpty() {
+                resultsCol.innerHTML = `<div class="empty-state">No matching places found nearby yet.<br>Try increasing the radius or turning on more categories.</div>`;
+            }
+
+            function locateAndLoad() {
+                setLoading('Locating you…');
+                statusLine.textContent = '';
+                if (!navigator.geolocation) {
+                    loadPlaces(28.6139, 77.2090, 'New Delhi, India (default)');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => loadPlaces(pos.coords.latitude, pos.coords.longitude, null),
+                    () => loadPlaces(28.6139, 77.2090, 'New Delhi, India (default — location denied)'),
+                    { timeout: 8000 }
+                );
+            }
+
+            async function geocodeAndLoad(query) {
+                setLoading('Finding "' + query + '"…');
+                try {
+                    const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query));
+                    const data = await res.json();
+                    if (!data.length) {
+                        setError('Could not find that place. Try a nearby bigger town or district name.');
+                        return;
+                    }
+                    const r = data[0];
+                    loadPlaces(parseFloat(r.lat), parseFloat(r.lon), r.display_name.split(',').slice(0, 3).join(','));
+                } catch (err) {
+                    setError('Search failed. Please check your connection and try again.');
+                }
+            }
+
+            // ---- Geocode caching (localStorage) + throttled Nominatim queue ----
+            const GEOCODE_CACHE_KEY = 'agriGeocodeCacheV1';
+            let geocodeCache = {};
+            try {
+                geocodeCache = JSON.parse(localStorage.getItem(GEOCODE_CACHE_KEY) || '{}');
+            } catch (e) { geocodeCache = {}; }
+            function saveGeocodeCache() {
+                try { localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(geocodeCache)); } catch (e) { }
+            }
+
+            let geocodeQueueTail = Promise.resolve();
+            function throttledFetch(url) {
+                const run = () => fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
+                const result = geocodeQueueTail.then(() =>
+                    new Promise(resolve => setTimeout(() => run().then(resolve), 1050))
+                );
+                geocodeQueueTail = result.catch(() => { });
+                return result;
+            }
+
+            async function geocodePlaceName(placeText) {
+                const key = placeText.trim().toLowerCase();
+                if (geocodeCache[key]) return geocodeCache[key];
+                const q = placeText + ', West Bengal, India';
+                const data = await throttledFetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
+                if (data && data.length) {
+                    const coord = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+                    geocodeCache[key] = coord;
+                    saveGeocodeCache();
+                    return coord;
+                }
+                geocodeCache[key] = null;
+                saveGeocodeCache();
+                return null;
+            }
+
+            async function reverseGeocodeDistrict(lat, lon) {
+                try {
+                    const data = await throttledFetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=8&addressdetails=1`);
+                    if (!data || !data.address) return null;
+                    const a = data.address;
+                    const candidates = [a.state_district, a.county, a.city_district, a.city, a.town].filter(Boolean).map(s => s.toLowerCase());
+                    const aliases = window.WB_DISTRICT_ALIASES || {};
+                    for (const districtKey of Object.keys(aliases)) {
+                        for (const alias of aliases[districtKey]) {
+                            if (candidates.some(c => c.includes(alias))) return districtKey;
+                        }
+                    }
+                    return null;
+                } catch (e) { return null; }
+            }
+
+            async function loadGovtColdStorage(lat, lon, radiusKm, onProgress) {
+                const db = window.WB_COLD_STORAGE_DB || {};
+                const district = await reverseGeocodeDistrict(lat, lon);
+                if (!district || !db[district] || !db[district].length) return [];
+
+                const entries = db[district];
+                const byLoc = {};
+                entries.forEach(e => {
+                    const loc = e[1];
+                    if (!byLoc[loc]) byLoc[loc] = [];
+                    byLoc[loc].push(e);
+                });
+                const uniqueLocs = Object.keys(byLoc);
+                let done = 0;
+                const results = [];
+
+                for (const loc of uniqueLocs) {
+                    const coord = await geocodePlaceName(loc);
+                    done++;
+                    if (onProgress) onProgress(done, uniqueLocs.length);
+                    if (!coord) continue;
+                    const dist = haversine(lat, lon, coord.lat, coord.lon);
+                    if (dist > radiusKm) continue;
+                    byLoc[loc].forEach(([name, locText, capacity, sector, commodity]) => {
+                        results.push({
+                            name,
+                            cat: 'cold',
+                            source: 'govt',
+                            lat: coord.lat, lon: coord.lon,
+                            dist,
+                            addr: locText,
+                            capacity, sector, commodity
+                        });
+                    });
+                }
+                return results;
+            }
+
+            function buildOverpassQuery(lat, lon, radiusMeters) {
+                return `[out:json][timeout:25];
+(
+  nwr["building"="warehouse"](around:${radiusMeters},${lat},${lon});
+  nwr["man_made"="works"](around:${radiusMeters},${lat},${lon});
+  nwr["shop"="agrarian"](around:${radiusMeters},${lat},${lon});
+  nwr["shop"="farm"](around:${radiusMeters},${lat},${lon});
+  nwr["shop"="garden_centre"](around:${radiusMeters},${lat},${lon});
+  nwr["shop"="hardware"](around:${radiusMeters},${lat},${lon});
+  nwr["name"~"cold storage|cold store|storage",i](around:${radiusMeters},${lat},${lon});
+  nwr["name"~"warehouse|godown|go-down",i](around:${radiusMeters},${lat},${lon});
+  nwr["name"~"seed|beej",i](around:${radiusMeters},${lat},${lon});
+  nwr["name"~"fertiliz|fertilis|khad|khaad|pesticide|agro",i](around:${radiusMeters},${lat},${lon});
+);
+out center tags;`;
+            }
+
+            function classify(tags) {
+                const name = (tags.name || '').toLowerCase();
+                const shop = tags.shop || '';
+                const building = tags.building || '';
+                if (/cold\s*stor/.test(name)) return 'cold';
+                if (/warehouse|godown|go-down/.test(name) || building === 'warehouse') return 'warehouse';
+                if (/seed|beej/.test(name)) return 'seed';
+                if (/fertiliz|fertilis|khad|khaad|pesticide|agro/.test(name)) return 'fertilizer';
+                if (shop === 'agrarian') return 'fertilizer';
+                if (shop === 'farm' || shop === 'garden_centre') return 'seed';
+                if (building === 'warehouse') return 'warehouse';
+                return 'warehouse';
+            }
+
+            function defaultLabel(cat) {
+                return { cold: 'Cold storage (unnamed)', warehouse: 'Warehouse (unnamed)', seed: 'Seed shop (unnamed)', fertilizer: 'Fertilizer shop (unnamed)' }[cat] || 'Unnamed place';
+            }
+
+            function haversine(lat1, lon1, lat2, lon2) {
+                const R = 6371;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
+            async function fetchOsmPlaces(lat, lon, radiusMeters, radiusKm) {
+                const query = buildOverpassQuery(lat, lon, radiusMeters);
+                const res = await fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'data=' + encodeURIComponent(query)
+                });
+                if (!res.ok) throw new Error('overpass error');
+                const data = await res.json();
+
+                const seen = new Set();
+                const places = [];
+                for (const el of data.elements) {
+                    const t = el.tags || {};
+                    const elLat = el.lat ?? (el.center && el.center.lat);
+                    const elLon = el.lon ?? (el.center && el.center.lon);
+                    if (elLat == null || elLon == null) continue;
+                    const cat = classify(t);
+                    const name = t.name || defaultLabel(cat);
+                    const key = name + '|' + elLat.toFixed(4) + '|' + elLon.toFixed(4);
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    const dist = haversine(lat, lon, elLat, elLon);
+                    if (dist > radiusKm) continue;
+                    places.push({
+                        name,
+                        cat,
+                        source: 'osm',
+                        lat: elLat, lon: elLon,
+                        dist,
+                        addr: [t['addr:housenumber'], t['addr:street'], t['addr:city']].filter(Boolean).join(', ')
+                    });
+                }
+                return places;
+            }
+
+            async function loadPlaces(lat, lon, label) {
+                currentLat = lat; currentLon = lon;
+                setLoading();
+                if (!mapReady) initMap();
+                map.setView([lat, lon], 13);
+                markersLayer.clearLayers();
+                if (userMarker) map.removeLayer(userMarker);
+                userMarker = L.circleMarker([lat, lon], { radius: 8, color: '#31502F', fillColor: '#D9A652', fillOpacity: 1, weight: 2 })
+                    .addTo(map).bindPopup('<b>Your location</b>');
+
+                const radiusKm = parseInt(radiusSlider.value, 10);
+                const radiusMeters = radiusKm * 1000;
+
+                let osmPlaces = [];
+                let govtPlaces = [];
+                let osmFailed = false;
+
+                const osmPromise = fetchOsmPlaces(lat, lon, radiusMeters, radiusKm)
+                    .then(p => { osmPlaces = p; })
+                    .catch(() => { osmFailed = true; });
+
+                const govtPromise = loadGovtColdStorage(lat, lon, radiusKm, (done, total) => {
+                    statusLine.textContent = (label ? label + ' · ' : '') + `Checking official cold storage registry… (${done}/${total})`;
+                }).then(p => { govtPlaces = p; }).catch(() => { });
+
+                await Promise.all([osmPromise, govtPromise]);
+
+                const places = [...govtPlaces, ...osmPlaces].sort((a, b) => a.dist - b.dist);
+                lastResults = places;
+
+                if (!places.length && osmFailed) {
+                    setError('Could not reach the map data service right now. Please try again shortly.');
+                    return;
+                }
+                statusLine.textContent = (label ? label + ' · ' : '') + places.length + ' place(s) found within ' + radiusKm + ' km' +
+                    (osmFailed ? ' (live map data unavailable — showing verified registry only)' : '');
+                renderResultsFromCache();
+            }
+
+            function renderResultsFromCache() {
+                const activeCats = Array.from(chipInputs).filter(c => c.checked).map(c => c.dataset.cat);
+                const filtered = lastResults.filter(p => activeCats.includes(p.cat));
+
+                markersLayer.clearLayers();
+                filtered.forEach(p => {
+                    const marker = L.circleMarker([p.lat, p.lon], {
+                        radius: 7,
+                        color: '#fff',
+                        weight: 2,
+                        fillColor: catColor(p.cat),
+                        fillOpacity: 0.95
+                    }).addTo(markersLayer);
+                    marker.bindPopup(`<b>${escapeHtml(p.name)}</b><br>${CATS[p.cat].icon} ${CATS[p.cat].label}${p.source === 'govt' ? ' ✅' : ''}<br>${p.dist.toFixed(1)} km away`);
+                    marker._agriId = p.name + p.lat + p.lon;
+                });
+
+                if (!filtered.length) { setEmpty(); return; }
+
+                resultsCol.innerHTML = filtered.map((p, i) => `
+      <div class="result-card" data-idx="${i}">
+        <div class="result-badge ${CATS[p.cat].badge}">${CATS[p.cat].icon}</div>
+        <div class="result-info">
+          <p class="result-name">${escapeHtml(p.name)}</p>
+          <p class="result-type">${CATS[p.cat].label}${p.source === 'govt' ? ' · ✅ Govt. registry' : ''}</p>
+          <div class="result-meta">
+            <span>${p.dist.toFixed(1)} km away${p.source === 'govt' ? ' (village-level)' : ''}</span>
+            ${p.addr ? `<span>${escapeHtml(p.addr)}</span>` : ''}
+            ${p.source === 'govt' ? `<span>${p.capacity} MT · ${escapeHtml(p.sector)} · ${escapeHtml(p.commodity)}</span>` : ''}
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}" target="_blank" rel="noopener">Get directions →</a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+                resultsCol.querySelectorAll('.result-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const idx = parseInt(card.dataset.idx, 10);
+                        const p = filtered[idx];
+                        map.setView([p.lat, p.lon], 15);
+                        resultsCol.querySelectorAll('.result-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                    });
+                });
+            }
+
+            function catColor(cat) {
+                return { cold: '#3E7EA6', warehouse: '#6B4423', seed: '#4C7A3F', fertilizer: '#B4472B' }[cat] || '#6B4423';
+            }
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

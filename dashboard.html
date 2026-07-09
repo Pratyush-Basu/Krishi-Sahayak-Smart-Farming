@@ -20,6 +20,7 @@
       <li><a href="http://127.0.0.1:5000/">Crop Recommendation</a></li>
       <li><a href="http://127.0.0.1:5000/fertilizer">Fertilizer</a></li>
       <li><a href="#">Disease</a></li>
+      <li><a href="http://127.0.0.1:5000/mandi">Live Mandi Price</a></li>
       <li><a href="Irrigation\\irrigation.html">Smart Irrigation</a></li>
       <li class="logout"><a href="#" onclick="logout()">Logout</a></li>
     </ul>
@@ -58,6 +59,24 @@
   </div>
 </section>
 
+<!-- Weather Floating Button -->
+<div class="weather-btn" onclick="toggleWeather()">
+    &lt;
+</div>
+
+<!-- Weather Popup -->
+<div class="weather-popup" id="weatherPopup">
+    <h3>🌦 Weather</h3>
+    <a href="weather.html">Open Weather</a>
+    <h3> Nearby Finder</h3>
+    <a href="nearby_finder.html">Find Nearby</a>
+    <h3>💰 Farm Expense & Profit Calculator</h3>
+    <a href="expense_calculator.html">Calculate Expenses</a>
+    <!-- or -->
+    <!-- <a href="https://mausam.imd.gov.in/" target="_blank">IMD Weather</a> -->
+</div>
+
+
 <footer>
   <p>&copy; 2025 Krishi - সহায়ক</p>
 </footer>
@@ -77,4 +96,19 @@
 ></df-messenger>
 
 </body>
+
+<script>
+  function logout() {
+    // Clear user data from localStorage
+    localStorage.removeItem('farmerName');
+    // Redirect to the landing page
+    window.location.href = 'landing.html';
+  }
+
+  function toggleWeather() {
+    const popup = document.getElementById('weatherPopup');
+    popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+  }
+
+</script>
 </html>

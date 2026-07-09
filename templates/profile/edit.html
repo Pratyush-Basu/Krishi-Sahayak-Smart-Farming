@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>Edit Profile — Krishi-Sahayak</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/log.css') }}" />
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4fdf4;
+            color: #333;
+        }
+
+        .profile-header {
+            background: rgba(34, 139, 34, 0.95);
+            color: #fff;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .profile-header a {
+            color: #c8e6c9;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .profile-header a:hover {
+            color: #fff;
+        }
+
+        .edit-container {
+            max-width: 550px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .edit-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .edit-card h3 {
+            color: #2e7d32;
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2e7d32;
+            outline: none;
+            box-shadow: 0 0 6px rgba(46,125,50,0.2);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .btn-save {
+            padding: 12px 36px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #228B22, #006400);
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #32CD32, #228B22);
+        }
+
+        .btn-cancel {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            background: #fff;
+            color: #666;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-cancel:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="profile-header">
+    <a href="{{ url_for('profile.view_profile') }}">← Back to Profile</a>
+    <h2>Edit Profile</h2>
+</div>
+
+<div class="edit-container">
+
+    <div class="edit-card">
+        <h3>Update Your Details</h3>
+
+<form method="POST" action="{{ url_for('profile.edit_profile') }}">
+
+    <div class="form-group">
+        <label for="display_name">Full Name</label>
+        <input
+            type="text"
+            name="display_name"
+            id="display_name"
+            value="{{ profile.display_name or '' }}"
+            placeholder="Enter your full name"
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input
+            type="tel"
+            name="phone"
+            id="phone"
+            value="{{ profile.phone or '' }}"
+            placeholder="10-digit phone number"
+            pattern="[0-9]{10}"
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="state">State</label>
+        <input
+            type="text"
+            name="state"
+            id="state"
+            value="{{ profile.state or '' }}"
+            placeholder="e.g. West Bengal"
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="district">District</label>
+        <input
+            type="text"
+            name="district"
+            id="district"
+            value="{{ profile.district or '' }}"
+            placeholder="e.g. Kolkata"
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="language">Preferred Language</label>
+
+        <select name="language" id="language">
+            <option value="english"
+                {{ 'selected' if profile.language == 'english' }}>
+                English
+            </option>
+
+            <option value="bengali"
+                {{ 'selected' if profile.language == 'bengali' }}>
+                Bengali
+            </option>
+
+            <option value="hindi"
+                {{ 'selected' if profile.language == 'hindi' }}>
+                Hindi
+            </option>
+        </select>
+    </div>
+
+    <div class="btn-row">
+        <a href="{{ url_for('profile.view_profile') }}" class="btn-cancel">
+            Cancel
+        </a>
+
+        <button type="submit" class="btn-save">
+            Save Changes
+        </button>
+    </div>
+
+</form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

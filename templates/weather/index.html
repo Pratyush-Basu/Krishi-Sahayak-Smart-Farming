@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriSky — Field Weather Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil:#3E2C20;
+    --field:#31502F;
+    --field-dark:#1F3820;
+    --wheat:#D9A652;
+    --wheat-light:#F2E2B8;
+    --sky:#6D93A8;
+    --cream:#F7F2E6;
+    --paper:#FFFCF5;
+    --alert:#B4472B;
+    --ink:#25241F;
+    --line: rgba(62,44,32,0.18);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Work Sans', sans-serif;
+    background:transparent;
+    color:var(--ink);
+  }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,16,10,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:20px;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.open{ display:flex; animation: fadeIn .2s ease; }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  .modal{
+    background:var(--paper);
+    width:100%;
+    max-width:880px;
+    max-height:88vh;
+    overflow-y:auto;
+    border-radius:20px;
+    box-shadow: 0 30px 70px rgba(20,16,10,0.4);
+    position:relative;
+    animation: riseIn .28s ease;
+    border: 1px solid var(--line);
+  }
+  @keyframes riseIn{ from{ transform:translateY(18px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+
+  .modal-header{
+    background: linear-gradient(135deg, var(--field) 0%, var(--field-dark) 100%);
+    color:var(--wheat-light);
+    padding:26px 30px 22px;
+    border-radius:20px 20px 0 0;
+    position:sticky;
+    top:0;
+    z-index:2;
+  }
+  .modal-header-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+  }
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-size:11px;
+    color:var(--wheat);
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .modal-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  .close-btn{
+    background:rgba(255,255,255,0.12);
+    border:none;
+    color:var(--wheat-light);
+    width:34px; height:34px;
+    border-radius:50%;
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition: background .15s ease;
+  }
+  .close-btn:hover{ background:rgba(255,255,255,0.25); }
+
+  .locate-row{
+    display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;
+  }
+  .locate-row input{
+    flex:1;
+    min-width:160px;
+    padding:9px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.1);
+    color:var(--wheat-light);
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+  }
+  .locate-row input::placeholder{ color:rgba(242,226,184,0.6); }
+  .locate-row button{
+    padding:9px 18px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.3);
+    background:var(--wheat);
+    color:var(--soil);
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .locate-row button:hover{ background:#e7bc6c; }
+  .locate-row .gps{
+    background:transparent;
+    color:var(--wheat-light);
+    border:1px solid rgba(255,255,255,0.35);
+  }
+  .locate-row .gps:hover{ background:rgba(255,255,255,0.12); }
+
+  .modal-body{ padding:26px 30px 32px; }
+
+  .status-line{
+    font-size:13px;
+    color:#7A6A55;
+    margin:0 0 18px;
+    min-height:18px;
+  }
+
+  .alert-banner{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:#FBEAE3;
+    border:1px solid #E4AE98;
+    color:var(--alert);
+    padding:14px 16px;
+    border-radius:12px;
+    margin-bottom:20px;
+    font-size:14px;
+    line-height:1.45;
+  }
+  .alert-banner strong{ display:block; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;}
+  .alert-icon{ font-size:20px; flex-shrink:0; line-height:1;}
+
+  .hero{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:22px;
+    background: var(--wheat-light);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:22px;
+    border:1px solid var(--line);
+  }
+  @media (max-width:600px){ .hero{ grid-template-columns:1fr; } }
+
+  .hero-place{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .hero-place .place-name{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    font-weight:600;
+    color:var(--soil);
+    margin:0 0 4px;
+  }
+  .hero-place .place-time{ font-size:12.5px; color:#7A6A55; margin:0 0 14px;}
+  .big-temp{
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .big-temp .num{ font-family:'Fraunces', serif; font-size:56px; font-weight:600; color:var(--field-dark); line-height:1;}
+  .big-temp .unit{ font-size:22px; color:var(--field-dark); font-weight:600;}
+  .condition-text{ font-size:14.5px; color:#5A4A38; margin-top:6px; }
+  .feels-like{ font-size:12.5px; color:#8A7A64; margin-top:2px; }
+
+  .weather-icon-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .weather-icon-wrap svg{ width:110px; height:110px; }
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:26px;
+  }
+  @media (max-width:640px){ .stat-grid{ grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 14px;
+    text-align:left;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card .stat-icon{ font-size:18px; margin-bottom:8px; display:block;}
+  .stat-card .stat-value{ font-family:'Fraunces', serif; font-size:22px; font-weight:600; color:var(--soil); line-height:1.1;}
+  .stat-card .stat-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.6px; color:#8A7A64; margin-top:4px; font-weight:600;}
+  .stat-card .stat-sub{ font-size:12px; color:#9A8A72; margin-top:4px;}
+
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-weight:600;
+    color:var(--soil);
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .forecast-strip{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:10px;
+    margin-bottom:8px;
+  }
+  @media (max-width:640px){ .forecast-strip{ grid-template-columns: repeat(3, 1fr); } }
+
+  .day-card{
+    background:var(--field);
+    color:var(--wheat-light);
+    border-radius:14px;
+    padding:14px 10px;
+    text-align:center;
+  }
+  .day-card:nth-child(1){ background:var(--field-dark); }
+  .day-card .day-name{ font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; opacity:0.85;}
+  .day-card svg{ width:34px; height:34px; margin:8px 0 6px; }
+  .day-card .day-temps{ font-size:14px; font-weight:600; }
+  .day-card .day-temps .lo{ opacity:0.6; font-weight:500;}
+  .day-card .day-rain{ font-size:11px; margin-top:6px; opacity:0.85; }
+
+  .footnote{
+    font-size:11.5px;
+    color:#9A8A72;
+    margin-top:20px;
+    text-align:center;
+    line-height:1.5;
+  }
+  .footnote a{ color:#7A6A55; }
+
+  .loading-state, .error-state{
+    padding:50px 10px;
+    text-align:center;
+    color:#7A6A55;
+    font-size:14px;
+  }
+  .spinner{
+    width:30px; height:30px;
+    border:3px solid var(--line);
+    border-top-color: var(--field);
+    border-radius:50%;
+    margin:0 auto 14px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .error-state{ color:var(--alert); }
+
+  /* Center the buttons */
+.text-center.mt-4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px !important;
+}
+
+/* Button styling */
+.text-center.mt-4 .btn {
+    min-width: 240px;
+    padding: 12px 20px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* Hover effect */
+.text-center.mt-4 .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove default address styling */
+.text-center.mt-4 address {
+    margin: 0;
+    font-style: normal;
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div class="modal-header-row">
+        <div>
+          <p class="eyebrow">Field Conditions</p>
+          <h2 class="modal-title" id="modalTitle">Krishi - সহায়ক</h2>
+        </div>
+        <button class="close-btn" id="closeBtn" aria-label="Close weather dashboard">✕</button>
+      </div>
+      <div class="locate-row">
+        <input type="text" id="cityInput" placeholder="Search village, town or city…" />
+        <button id="searchBtn">Search</button>
+        <button class="gps" id="gpsBtn">📍 Use my location</button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <p class="status-line" id="statusLine"></p>
+      <div id="content">
+        <div class="loading-state" id="loadingState">
+          <div class="spinner"></div>
+          Fetching your field's weather…
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-4">
+      <address class="btn btn-success" onclick="window.print()">
+          🖨 Print Nearby Storage & Supply Finder
+      </address>
+      <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+          ⬅ Back to Dashboard
+      </a>
+  
+  </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('closeBtn');
+  const content = document.getElementById('content');
+  const statusLine = document.getElementById('statusLine');
+  const cityInput = document.getElementById('cityInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const gpsBtn = document.getElementById('gpsBtn');
+
+  let loaded = false;
+
+  overlay.classList.add('open');
+
+    if (!loaded) {
+        locateAndLoad();
+        loaded = true;
+    }
+  closeBtn.addEventListener('click', () => {
+    window.history.back();
+});
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') overlay.classList.remove('open'); });
+
+  searchBtn.addEventListener('click', ()=>{
+    const q = cityInput.value.trim();
+    if(q) geocodeAndLoad(q);
+  });
+  cityInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ const q = cityInput.value.trim(); if(q) geocodeAndLoad(q); }
+  });
+  gpsBtn.addEventListener('click', locateAndLoad);
+
+  function setLoading(msg){
+    content.innerHTML = `<div class="loading-state"><div class="spinner"></div>${msg || "Fetching your field's weather…"}</div>`;
+  }
+  function setError(msg){
+    content.innerHTML = `<div class="error-state">⚠️ ${msg}</div>`;
+  }
+
+  function locateAndLoad(){
+    setLoading('Locating your field…');
+    statusLine.textContent = '';
+    if(!navigator.geolocation){
+      // Fallback default: New Delhi, India
+      loadWeather(28.6139, 77.2090, 'New Delhi, India');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos)=> loadWeather(pos.coords.latitude, pos.coords.longitude, null),
+      ()=> loadWeather(28.6139, 77.2090, 'New Delhi, India (default — location denied)'),
+      { timeout: 8000 }
+    );
+  }
+
+  async function geocodeAndLoad(query){
+    setLoading('Finding "' + query + '"…');
+    try{
+      const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=1&language=en&format=json');
+      const data = await res.json();
+      if(!data.results || !data.results.length){
+        setError('Could not find that place. Try a nearby bigger town or district name.');
+        return;
+      }
+      const r = data.results[0];
+      const label = [r.name, r.admin1, r.country].filter(Boolean).join(', ');
+      loadWeather(r.latitude, r.longitude, label);
+    }catch(err){
+      setError('Search failed. Please check your connection and try again.');
+    }
+  }
+
+  async function reverseLabel(lat, lon){
+    try{
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent('')}`);
+    }catch(e){}
+    return null;
+  }
+
+  async function loadWeather(lat, lon, label){
+    setLoading();
+    try{
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+        `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,wind_gusts_10m_max` +
+        `&timezone=auto`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      render(data, label, lat, lon);
+    }catch(err){
+      setError('Could not load weather data right now. Please try again in a moment.');
+    }
+  }
+
+  // --- Weather code → description + icon (WMO codes used by Open-Meteo) ---
+  function wxInfo(code){
+    const map = {
+      0:['Clear sky','sun'], 1:['Mainly clear','sun'], 2:['Partly cloudy','cloud-sun'], 3:['Overcast','cloud'],
+      45:['Fog','fog'], 48:['Freezing fog','fog'],
+      51:['Light drizzle','rain'], 53:['Drizzle','rain'], 55:['Dense drizzle','rain'],
+      56:['Freezing drizzle','rain'], 57:['Freezing drizzle','rain'],
+      61:['Light rain','rain'], 63:['Rain','rain'], 65:['Heavy rain','rain'],
+      66:['Freezing rain','rain'], 67:['Freezing rain','rain'],
+      71:['Light snow','snow'], 73:['Snow','snow'], 75:['Heavy snow','snow'], 77:['Snow grains','snow'],
+      80:['Light rain showers','rain'], 81:['Rain showers','rain'], 82:['Violent rain showers','rain'],
+      85:['Snow showers','snow'], 86:['Heavy snow showers','snow'],
+      95:['Thunderstorm','storm'], 96:['Thunderstorm, hail','storm'], 99:['Thunderstorm, heavy hail','storm']
+    };
+    return map[code] || ['Unknown','cloud'];
+  }
+
+  const icons = {
+    sun: `<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="14" fill="#D9A652"/><g stroke="#D9A652" stroke-width="3.5" stroke-linecap="round"><line x1="32" y1="4" x2="32" y2="12"/><line x1="32" y1="52" x2="32" y2="60"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="52" y1="32" x2="60" y2="32"/><line x1="12" y1="12" x2="17.5" y2="17.5"/><line x1="46.5" y1="46.5" x2="52" y2="52"/><line x1="12" y1="52" x2="17.5" y2="46.5"/><line x1="46.5" y1="17.5" x2="52" y2="12"/></g></svg>`,
+    'cloud-sun': `<svg viewBox="0 0 64 64" fill="none"><circle cx="24" cy="24" r="10" fill="#D9A652"/><path d="M14 46a10 10 0 0 1 3-19.5A13 13 0 0 1 42 30a9 9 0 0 1-1 18H14z" fill="#6D93A8"/></svg>`,
+    cloud: `<svg viewBox="0 0 64 64" fill="none"><path d="M14 46a10 10 0 0 1 3-19.5A13 13 0 0 1 42 30a9 9 0 0 1-1 18H14z" fill="#8FA6AF"/></svg>`,
+    fog: `<svg viewBox="0 0 64 64" fill="none"><path d="M14 40a10 10 0 0 1 3-19.5A13 13 0 0 1 42 24a9 9 0 0 1-1 18H14z" fill="#B9C4C8"/><g stroke="#8FA6AF" stroke-width="3" stroke-linecap="round"><line x1="10" y1="50" x2="54" y2="50"/><line x1="14" y1="57" x2="50" y2="57"/></g></svg>`,
+    rain: `<svg viewBox="0 0 64 64" fill="none"><path d="M14 38a10 10 0 0 1 3-19.5A13 13 0 0 1 42 22a9 9 0 0 1-1 18H14z" fill="#6D93A8"/><g stroke="#3E6E86" stroke-width="3" stroke-linecap="round"><line x1="20" y1="46" x2="17" y2="56"/><line x1="32" y1="46" x2="29" y2="56"/><line x1="44" y1="46" x2="41" y2="56"/></g></svg>`,
+    snow: `<svg viewBox="0 0 64 64" fill="none"><path d="M14 38a10 10 0 0 1 3-19.5A13 13 0 0 1 42 22a9 9 0 0 1-1 18H14z" fill="#B9C9CE"/><g fill="#6D93A8"><circle cx="20" cy="52" r="2.5"/><circle cx="32" cy="55" r="2.5"/><circle cx="44" cy="52" r="2.5"/></g></svg>`,
+    storm: `<svg viewBox="0 0 64 64" fill="none"><path d="M14 34a10 10 0 0 1 3-19.5A13 13 0 0 1 42 18a9 9 0 0 1-1 18H14z" fill="#5A6B78"/><path d="M33 36 24 50h8l-3 12 14-18h-8z" fill="#D9A652"/></svg>`
+  };
+
+  function fmtTime(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit'});
+    }catch(e){ return ''; }
+  }
+  function dayLabel(dateStr, idx){
+    if(idx === 0) return 'Today';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString([], { weekday:'short' });
+  }
+
+  function buildAlerts(current, daily){
+    const alerts = [];
+    if(current.precipitation_probability >= 70 || (daily.precipitation_sum && daily.precipitation_sum[0] >= 15)){
+      alerts.push({title:'Heavy rain likely', text:'High chance of significant rainfall in the next 24 hours. Consider delaying spraying or harvesting.'});
+    }
+    if(current.wind_gusts_10m >= 40){
+      alerts.push({title:'Strong wind gusts', text:'Gusts above 40 km/h expected. Secure loose covers, nets, and young plant supports.'});
+    }
+    if(current.temperature_2m >= 40){
+      alerts.push({title:'Extreme heat', text:'Very high temperature today. Irrigate early morning or evening and watch livestock for heat stress.'});
+    }
+    if(current.temperature_2m <= 4){
+      alerts.push({title:'Frost risk', text:'Near-freezing temperature expected. Protect sensitive crops and seedlings overnight.'});
+    }
+    const code = current.weather_code;
+    if([95,96,99].includes(code)){
+      alerts.push({title:'Thunderstorm nearby', text:'Lightning risk in the area. Avoid open fields and tall machinery during the storm.'});
+    }
+    return alerts;
+  }
+
+  function render(data, label, lat, lon){
+    const cur = data.current;
+    const daily = data.daily;
+    const [condText, condIcon] = wxInfo(cur.weather_code);
+    const alerts = buildAlerts(cur, daily);
+
+    const placeName = label || `Lat ${lat.toFixed(2)}, Lon ${lon.toFixed(2)}`;
+    statusLine.textContent = 'Last updated ' + fmtTime(cur.time) + ' · ' + placeName;
+
+    let alertsHtml = '';
+    if(alerts.length){
+      alertsHtml = alerts.map(a => `
+        <div class="alert-banner">
+          <span class="alert-icon">⚠️</span>
+          <div><strong>${a.title}</strong>${a.text}</div>
+        </div>`).join('');
+    }
+
+    const forecastHtml = daily.time.slice(0,5).map((date, i) => {
+      const [ , icon] = wxInfo(daily.weather_code[i]);
+      return `
+        <div class="day-card">
+          <div class="day-name">${dayLabel(date, i)}</div>
+          ${icons[icon]}
+          <div class="day-temps">${Math.round(daily.temperature_2m_max[i])}° <span class="lo">${Math.round(daily.temperature_2m_min[i])}°</span></div>
+          <div class="day-rain">🌧 ${daily.precipitation_probability_max[i] ?? 0}%</div>
+        </div>`;
+    }).join('');
+
+    content.innerHTML = `
+      ${alertsHtml}
+      <div class="hero">
+        <div class="hero-place">
+          <p class="place-name">${placeName}</p>
+          <p class="place-time">Updated ${fmtTime(cur.time)} local time</p>
+          <div class="big-temp">
+            <span class="num">${Math.round(cur.temperature_2m)}</span><span class="unit">°C</span>
+          </div>
+          <div class="condition-text">${condText}</div>
+          <div class="feels-like">Feels like ${Math.round(cur.apparent_temperature)}°C</div>
+        </div>
+        <div class="weather-icon-wrap">${icons[condIcon]}</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-icon">💧</span>
+          <div class="stat-value">${cur.relative_humidity_2m}%</div>
+          <div class="stat-label">Humidity</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🌧️</span>
+          <div class="stat-value">${cur.precipitation_probability ?? 0}%</div>
+          <div class="stat-label">Rain chance</div>
+          <div class="stat-sub">${cur.precipitation} mm now</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💨</span>
+          <div class="stat-value">${Math.round(cur.wind_speed_10m)} km/h</div>
+          <div class="stat-label">Wind speed</div>
+          <div class="stat-sub">Gusts ${Math.round(cur.wind_gusts_10m)} km/h</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🌡️</span>
+          <div class="stat-value">${Math.round(daily.temperature_2m_max[0])}° / ${Math.round(daily.temperature_2m_min[0])}°</div>
+          <div class="stat-label">Today's range</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">5-Day Forecast</h3>
+      <div class="forecast-strip">${forecastHtml}</div>
+
+    `;
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krishi Hisab - Farm Profit Calculator</title>
+<style>
+  :root{
+    --forest: #2c3b26;
+    --forest-dark: #23301e;
+    --gold: #d9b872;
+    --gold-soft: #c9ab6e;
+    --cream: #f2e6c2;
+    --cream-soft: #f7f0d9;
+    --card: #fdfbf3;
+    --ink: #2c3b26;
+    --ink-soft: #6b6250;
+    --profit: #3f6b3a;
+    --loss: #a5432f;
+    --line: #e6dcb8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Segoe UI', 'Noto Sans Bengali', sans-serif;
+    background: #e9e4d3;
+    display:flex;
+    justify-content:center;
+    padding: 32px 16px;
+  }
+  .app{
+    width: 100%;
+    max-width: 1040px;
+    background: var(--cream-soft);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(35,48,30,0.25);
+  }
+  header{
+    background: linear-gradient(160deg, var(--forest) 0%, var(--forest-dark) 100%);
+    padding: 28px 36px 34px;
+    position: relative;
+  }
+  .eyebrow{
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  h1{
+    color: var(--cream);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 34px;
+    margin: 0 0 4px;
+  }
+  h1 span{ color: var(--gold); }
+  .sub{
+    color: #cdd6c4;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .body-area{ padding: 30px 36px 36px; }
+
+  .grid{
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+  }
+  @media (max-width: 760px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .panel-title{
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+
+  .input-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .field{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .field:last-child{ border-bottom:none; }
+  .field .icon{
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--cream);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 19px;
+    flex-shrink:0;
+  }
+  .field .meta{ flex: 1; }
+  .field label{
+    display:block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .field .hint{
+    font-size: 11px;
+    color: #9a9078;
+  }
+  .field .input-wrap{
+    display:flex;
+    align-items:center;
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 6px 10px;
+    min-width: 130px;
+  }
+  .field .input-wrap span{
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin-right: 4px;
+  }
+  .field input{
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    width: 100%;
+    text-align: right;
+    font-family: inherit;
+  }
+
+  /* Results side */
+  .result-card{
+    background: linear-gradient(160deg, var(--forest) 0%, var(--forest-dark) 100%);
+    border-radius: 16px;
+    padding: 24px;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+  .result-card .label{
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .result-card .big{
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-family: Georgia, serif;
+  }
+  .result-card .note{
+    font-size: 12.5px;
+    color: #cdd6c4;
+  }
+  .status-pill{
+    display:inline-block;
+    margin-top: 10px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .status-profit{ background: #3f6b3a; color: #eaf3e6; }
+  .status-loss{ background: #a5432f; color: #f9e9e4; }
+  .status-flat{ background: #6b6250; color: #f2ede0; }
+
+  .stat-row{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .stat-box{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .stat-box .icon{ font-size: 18px; margin-bottom: 6px; }
+  .stat-box .val{
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .stat-box .lbl{
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .breakdown{
+    margin-top: 16px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .bd-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .bd-row .bar-bg{
+    flex:1;
+    height: 8px;
+    background: var(--cream);
+    border-radius: 6px;
+    margin: 0 12px;
+    overflow:hidden;
+  }
+  .bd-row .bar-fill{
+    height: 100%;
+    background: var(--gold-soft);
+    border-radius: 6px;
+  }
+  .bd-row .bd-amt{ font-weight:700; min-width: 90px; text-align:right; }
+
+  .reset-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top: 18px;
+    background: transparent;
+    border: 1px solid var(--forest);
+    color: var(--forest);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .reset-btn:hover{ background: var(--forest); color: var(--cream); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="eyebrow">Farm Ledger</div>
+    <h1>Krishi <span>Hisab</span></h1>
+    <p class="sub">Work out your cultivation cost, revenue, and profit before the season starts.</p>
+  </header>
+
+  <div class="body-area">
+    <div class="grid">
+
+      <!-- LEFT: INPUTS -->
+      <div>
+        <p class="panel-title">Cultivation Costs</p>
+        <div class="input-card">
+
+          <div class="field">
+            <div class="icon">🌱</div>
+            <div class="meta">
+              <label for="seed">Seed cost</label>
+              <div class="hint">Cost of seeds or saplings</div>
+            </div>
+            <div class="input-wrap"><span>₹</span><input type="number" id="seed" value="4000" min="0"></div>
+          </div>
+
+          <div class="field">
+            <div class="icon">🧪</div>
+            <div class="meta">
+              <label for="fertilizer">Fertilizer cost</label>
+              <div class="hint">Fertilizer, manure, pesticide</div>
+            </div>
+            <div class="input-wrap"><span>₹</span><input type="number" id="fertilizer" value="6000" min="0"></div>
+          </div>
+
+          <div class="field">
+            <div class="icon">💧</div>
+            <div class="meta">
+              <label for="irrigation">Irrigation cost</label>
+              <div class="hint">Water, pumps, fuel/electricity</div>
+            </div>
+            <div class="input-wrap"><span>₹</span><input type="number" id="irrigation" value="3000" min="0"></div>
+          </div>
+
+          <div class="field">
+            <div class="icon">🧑‍🌾</div>
+            <div class="meta">
+              <label for="labour">Labour cost</label>
+              <div class="hint">Sowing, weeding, harvesting</div>
+            </div>
+            <div class="input-wrap"><span>₹</span><input type="number" id="labour" value="7000" min="0"></div>
+          </div>
+
+        </div>
+
+        <p class="panel-title">Expected Harvest</p>
+        <div class="input-card">
+
+          <div class="field">
+            <div class="icon">🌾</div>
+            <div class="meta">
+              <label for="yieldQty">Expected yield</label>
+              <div class="hint">Total quantity you expect to harvest</div>
+            </div>
+            <div class="input-wrap"><input type="number" id="yieldQty" value="40" min="0"><span style="margin-left:6px;">qtl</span></div>
+          </div>
+
+          <div class="field">
+            <div class="icon">💰</div>
+            <div class="meta">
+              <label for="price">Selling price</label>
+              <div class="hint">Expected rate per unit</div>
+            </div>
+            <div class="input-wrap"><span>₹</span><input type="number" id="price" value="1800" min="0"><span style="margin-left:4px;">/qtl</span></div>
+          </div>
+
+        </div>
+
+        <button class="reset-btn" onclick="resetForm()">↺ Reset to blank</button>
+        <button class="reset-btn" onclick="printReport()">Print Report</button>
+        <button class="reset-btn" onclick="window.location.href='{{ url_for('main.dashboard') }}'">🏠 Back to Dashboard</button>
+      </div>
+
+      <!-- RIGHT: RESULTS -->
+      <div>
+        <p class="panel-title">Season Outlook</p>
+
+        <div class="result-card">
+          <div class="label">Expected Profit / Loss</div>
+          <div class="big" id="profitBig">₹0</div>
+          <div class="note">Revenue minus total cultivation cost</div>
+          <span class="status-pill status-flat" id="statusPill">Break-even</span>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="icon">🧾</div>
+            <div class="val" id="totalCostVal">₹0</div>
+            <div class="lbl">Total Cost</div>
+          </div>
+          <div class="stat-box">
+            <div class="icon">📈</div>
+            <div class="val" id="revenueVal">₹0</div>
+            <div class="lbl">Expected Revenue</div>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <p class="panel-title" style="margin-bottom:10px;">Cost Breakdown</p>
+          <div class="bd-row"><span>Seed</span><div class="bar-bg"><div class="bar-fill" id="bar-seed"></div></div><span class="bd-amt" id="amt-seed">₹0</span></div>
+          <div class="bd-row"><span>Fertilizer</span><div class="bar-bg"><div class="bar-fill" id="bar-fertilizer"></div></div><span class="bd-amt" id="amt-fertilizer">₹0</span></div>
+          <div class="bd-row"><span>Irrigation</span><div class="bar-bg"><div class="bar-fill" id="bar-irrigation"></div></div><span class="bd-amt" id="amt-irrigation">₹0</span></div>
+          <div class="bd-row"><span>Labour</span><div class="bar-bg"><div class="bar-fill" id="bar-labour"></div></div><span class="bd-amt" id="amt-labour">₹0</span></div>
+        </div>
+
+        <div class="stat-row" style="margin-top:16px;">
+          <div class="stat-box">
+            <div class="icon">📊</div>
+            <div class="val" id="profitPctVal">0%</div>
+            <div class="lbl">Profit Margin</div>
+          </div>
+          <div class="stat-box">
+            <div class="icon">⚖️</div>
+            <div class="val" id="breakEvenVal">₹0</div>
+            <div class="lbl">Break-even Price /unit</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function fmt(n){
+  const neg = n < 0;
+  n = Math.abs(Math.round(n));
+  const s = n.toLocaleString('en-IN');
+  return (neg ? '-₹' : '₹') + s;
+}
+
+function calc(){
+  const seed = parseFloat(document.getElementById('seed').value) || 0;
+  const fertilizer = parseFloat(document.getElementById('fertilizer').value) || 0;
+  const irrigation = parseFloat(document.getElementById('irrigation').value) || 0;
+  const labour = parseFloat(document.getElementById('labour').value) || 0;
+  const qty = parseFloat(document.getElementById('yieldQty').value) || 0;
+  const price = parseFloat(document.getElementById('price').value) || 0;
+
+  const totalCost = seed + fertilizer + irrigation + labour;
+  const revenue = qty * price;
+  const profit = revenue - totalCost;
+  const profitPct = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+  const breakEven = qty > 0 ? totalCost / qty : 0;
+
+  document.getElementById('totalCostVal').textContent = fmt(totalCost);
+  document.getElementById('revenueVal').textContent = fmt(revenue);
+  document.getElementById('profitBig').textContent = fmt(profit);
+  document.getElementById('profitPctVal').textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(1) + '%';
+  document.getElementById('breakEvenVal').textContent = fmt(breakEven);
+
+  const pill = document.getElementById('statusPill');
+  pill.classList.remove('status-profit','status-loss','status-flat');
+  if (profit > 0){ pill.textContent = 'Profit expected'; pill.classList.add('status-profit'); }
+  else if (profit < 0){ pill.textContent = 'Loss expected'; pill.classList.add('status-loss'); }
+  else { pill.textContent = 'Break-even'; pill.classList.add('status-flat'); }
+
+  const parts = [
+    ['seed', seed], ['fertilizer', fertilizer], ['irrigation', irrigation], ['labour', labour]
+  ];
+  parts.forEach(([key, val]) => {
+    const pct = totalCost > 0 ? (val / totalCost) * 100 : 0;
+    document.getElementById('bar-' + key).style.width = pct + '%';
+    document.getElementById('amt-' + key).textContent = fmt(val);
+  });
+}
+
+function resetForm(){
+  ['seed','fertilizer','irrigation','labour','yieldQty','price'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  calc();
+}
+
+function printReport(){
+  window.print();
+}
+
+document.querySelectorAll('input').forEach(inp => {
+  inp.addEventListener('input', calc);
+});
+
+calc();
+</script>
+
+</body>
+</html>

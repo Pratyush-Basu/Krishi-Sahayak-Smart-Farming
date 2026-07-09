@@ -1,0 +1,33 @@
+# ============================================================
+# requirements.txt — Krishi-Sahayak Unified Dependencies
+# ============================================================
+# Install with:  pip install -r requirements.txt
+# ============================================================
+
+# ── Flask Core ───────────────────────────────────────────────
+Flask==3.0.3
+python-dotenv==1.0.1
+Werkzeug==3.0.6
+
+# ── Firebase Admin SDK (server-side token verification) ───────
+firebase-admin==6.5.0
+
+# ── ML / Data Science ────────────────────────────────────────
+numpy==1.26.4
+scikit-learn==1.5.2
+pandas==2.2.3
+Pillow==10.4.0
+
+# TensorFlow for Disease Detection model (.keras format)
+# Use tensorflow-cpu if you don't have a GPU:
+tensorflow==2.16.2
+
+# ── AI / LLM APIs ────────────────────────────────────────────
+google-generativeai==0.8.4
+groq==0.12.0
+
+# ── HTTP Requests ─────────────────────────────────────────────
+requests==2.32.3
+
+# ── Production Server ─────────────────────────────────────────
+gunicorn==23.0.0

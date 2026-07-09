@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 Smart Crop Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #e8f5e9, #f1f8e9);
+            font-family: "Poppins", sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+            margin-bottom: 60px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .btn-custom {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #388e3c;
+        }
+        .result-card {
+            background-color: #ffffff;
+            border-left: 5px solid #4CAF50;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        #chart-container {
+            margin-top: 30px;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #555;
+        }
+        table {
+            width: 100%;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+        }
+        td {
+            text-align: center;
+        }
+        .page-nav {
+            background: rgba(34, 139, 34, 0.95);
+            padding: 14px 24px;
+        }
+        .page-nav a {
+            color: #c8e6c9;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .page-nav a:hover { color: #fff; }
+    </style>
+</head>
+<body>
+<!--<nav class="page-nav">
+    <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+</nav>-->
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-success">🌱 Smart Crop Recommendation System</h1>
+            <p class="text-muted">Enter your soil and climate parameters to get the top 5 recommended crops</p>
+        </div>
+
+        {% if prediction_text and not top_crop %}
+        <div class="alert alert-danger text-center">{{ prediction_text }}</div>
+        {% endif %}
+
+        <div class="card p-4">
+            <form action="{{ url_for('crop.predict') }}" method="post" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nitrogen (0 - 140)</label>
+                    <input type="number" name="Nitrogen" class="form-control" placeholder="e.g., 90" min="0" max="140" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Phosphorus (5 - 145)</label>
+                    <input type="number" name="Phosphorus" class="form-control" placeholder="e.g., 60" min="5" max="145" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Potassium (5 - 205)</label>
+                    <input type="number" name="Potassium" class="form-control" placeholder="e.g., 50" min="5" max="205" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Temperature (8°C - 44°C)</label>
+                    <input type="number" step="0.01" name="temperature" class="form-control" placeholder="e.g., 25" min="8" max="44" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Humidity (15% - 100%)</label>
+                    <input type="number" step="0.01" name="humidity" class="form-control" placeholder="e.g., 60" min="15" max="100" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">pH (3.5 - 10)</label>
+                    <input type="number" step="0.01" name="ph" class="form-control" placeholder="e.g., 6.5" min="3.5" max="10" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Rainfall (20mm - 300mm)</label>
+                    <input type="number" step="0.01" name="rainfall" class="form-control" placeholder="e.g., 120" min="20" max="300" required>
+                </div>
+                <div class="col-md-12 text-center">
+                    <button type="submit" class="btn btn-custom px-4 py-2">Predict Crops</button>
+                </div>
+            </form>
+        </div>
+
+        {% if top_crop %}
+        <div class="result-card">
+            <h4 class="text-success fw-bold">🌾 Top Recommendation: {{ top_crop }}</h4>
+            <p>{{ prediction_text }}</p>
+        </div>
+
+        <div id="chart-container">
+            <canvas id="cropChart"></canvas>
+        </div>
+
+        {% if labels %}
+<div class="card p-3 mt-4 text-center">
+    <h5 class="fw-semibold text-success">
+        🌱 Do you want Fertilizer Recommendation?
+    </h5>
+
+    <form action="{{ url_for('crop.fertilizer_entry') }}" method="post">
+        <!-- Pass NPK values -->
+        <input type="hidden" name="crop" value="{{ top_crop }}">
+        <input type="hidden" name="N" value="{{ inputs['Nitrogen'] }}">
+        <input type="hidden" name="P" value="{{ inputs['Phosphorus'] }}">
+        <input type="hidden" name="K" value="{{ inputs['Potassium'] }}">
+
+        <!-- Pass Top-5 crops 
+        {% for crop in labels %}
+            <input type="hidden" name="top_crops[]" value="{{ crop }}">
+        {% endfor %}
+-->
+        <button type="submit" class="btn btn-custom mt-2">
+            Yes, Recommend Fertilizer
+        </button>
+    </form>
+</div>
+{% endif %}
+
+        {% if inputs %}
+        <div class="card p-3 mt-4">
+            <h5 class="text-success fw-semibold mb-3 text-center">Input Parameters Used</h5>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in inputs.items() %}
+                    <tr>
+                        <td>{{ key }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Add this after your crop result card -->
+<div id="mandiPriceBox" style="display:none; margin-top:16px; 
+     background:#f0fff0; border:1px solid #2d7a2d; 
+     border-radius:10px; padding:16px;">
+  <h4 style="color:#2d7a2d">📊 Current Market Price</h4>
+  <p id="mandiPriceText" style="margin-top:8px; font-size:15px"></p>
+  <a href="{{ url_for('mandi.mandi_page') }}" style="color:#2d7a2d; font-size:13px;">
+    View full mandi dashboard →
+  </a>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/crop" class="btn btn-outline-success me-2">
+        🔁 New Prediction
+    </a>
+    <address class="btn btn-success" onclick="window.print()">
+        🖨 Print Result
+    </address>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+        ⬅ Back to Dashboard
+    </a>
+
+</div>
+
+        <footer class="mt-4">
+            <p><b>© 2025 Krishi - সহায়ক</b></p>
+        </footer>
+    </div>
+
+    {% if labels and values %}
+    <script>
+        const ctx = document.getElementById('cropChart').getContext('2d');
+        const cropChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels|safe }},
+                datasets: [{
+                    label: 'Confidence (%)',
+                    data: {{ values|safe }},
+                    backgroundColor: ['#81C784', '#A5D6A7', '#C5E1A5', '#E6EE9C', '#FFF59D'],
+                    borderColor: '#388E3C',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 100, title: { display: true, text: 'Confidence (%)' } },
+                    x: { title: { display: true, text: 'Crops' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Top 5 Recommended Crops' }
+                }
+            }
+        });
+
+        {% if top_crop %}
+        (async function fetchMandiPrice() {
+            try {
+                const res = await fetch('/mandi/api/crop-price?crop={{ top_crop|lower }}&state=West%20Bengal');
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const box = document.getElementById('mandiPriceBox');
+                    const text = document.getElementById('mandiPriceText');
+                    if (box && text) {
+                        text.textContent = '{{ top_crop|capitalize }}: ₹' + Number(json.data.modal_price || 0).toLocaleString('en-IN') + '/quintal at ' + (json.data.market || 'nearest mandi');
+                        box.style.display = 'block';
+                    }
+                }
+            } catch (e) { /* optional feature */ }
+        })();
+        {% endif %}
+    </script>
+    {% endif %}
+</body>
+</html>

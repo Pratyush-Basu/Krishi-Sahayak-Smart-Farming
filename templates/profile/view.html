@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>My Profile - Krishi-Sahayak</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/log.css') }}" />
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4fdf4;
+    color: #333;
+}
+
+.profile-header{
+    background: rgba(34,139,34,0.95);
+    color:#fff;
+    padding:18px 24px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.profile-header h2{
+    margin:0;
+    font-size:1.3rem;
+}
+
+.profile-header a{
+    color:#c8e6c9;
+    text-decoration:none;
+    font-size:.9rem;
+}
+
+.profile-header a:hover{
+    color:#fff;
+}
+
+.profile-container{
+    max-width:600px;
+    margin:40px auto;
+    padding:0 20px;
+}
+
+.profile-card{
+    background:#fff;
+    border-radius:16px;
+    padding:40px;
+    box-shadow:0 4px 20px rgba(0,0,0,.08);
+    text-align:center;
+}
+
+.avatar-wrap{
+    display:inline-block;
+    position:relative;
+    margin-bottom:20px;
+}
+
+.avatar{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    border:4px solid #2e7d32;
+}
+
+.profile-name{
+    font-size:1.5rem;
+    font-weight:700;
+    color:#2e7d32;
+    margin:0 0 5px;
+}
+
+.profile-email{
+    color:#777;
+    font-size:.95rem;
+    margin:0 0 20px;
+}
+
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    text-align:left;
+    margin-top:20px;
+}
+
+.info-item{
+    background:#f1f8e9;
+    border-radius:10px;
+    padding:14px 16px;
+}
+
+.info-label{
+    font-size:.75rem;
+    text-transform:uppercase;
+    color:#888;
+    font-weight:600;
+    letter-spacing:.5px;
+}
+
+.info-value{
+    font-size:1rem;
+    color:#333;
+    margin-top:4px;
+}
+
+.btn-row{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:24px;
+    flex-wrap:wrap;
+}
+
+.btn-profile{
+    padding:10px 24px;
+    border-radius:8px;
+    border:none;
+    font-size:.9rem;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+}
+
+.btn-edit{
+    background:#2e7d32;
+    color:#fff;
+}
+
+.btn-edit:hover{
+    background:#1b5e20;
+}
+
+.btn-upload{
+    background:#fff;
+    color:#2e7d32;
+    border:2px solid #2e7d32;
+}
+
+.btn-upload:hover{
+    background:#e8f5e9;
+}
+
+/* Flash messages */
+
+.flash-msg{
+    max-width:600px;
+    margin:20px auto;
+    padding:12px 20px;
+    border-radius:8px;
+    font-size:.9rem;
+    text-align:center;
+}
+
+.flash-success{
+    background:#e8f5e9;
+    color:#2e7d32;
+    border:1px solid #c8e6c9;
+}
+
+.flash-danger{
+    background:#fce4ec;
+    color:#c62828;
+    border:1px solid #ef9a9a;
+}
+
+.flash-info{
+    background:#e3f2fd;
+    color:#1565c0;
+    border:1px solid #90caf9;
+}
+
+.flash-warning{
+    background:#fff3e0;
+    color:#e65100;
+    border:1px solid #ffcc80;
+}
+
+</style>
+
+</head>
+
+<body>
+    <div class="profile-header">
+        <a href="{{ url_for('main.dashboard') }}">← Dashboard</a>
+        <h2>My Profile</h2>
+    </div>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-msg flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="profile-container">
+    
+        <div class="profile-card">
+    
+            <div class="avatar-wrap">
+                <img
+                    class="avatar"
+                    src="{{ photo_url }}"
+                    alt="Profile Photo"
+                />
+            </div>
+    
+            <p class="profile-name">
+                {{ profile.display_name or user.display_name or 'Farmer' }}
+            </p>
+    
+            <p class="profile-email">
+                {{ profile.email or user.email }}
+            </p>
+    
+            <div class="info-grid">
+    
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">
+                        {{ profile.phone or 'Not set' }}
+                    </div>
+                </div>
+    
+                <div class="info-item">
+                    <div class="info-label">State</div>
+                    <div class="info-value">
+                        {{ profile.state or 'Not set' }}
+                    </div>
+                </div>
+    
+                <div class="info-item">
+                    <div class="info-label">District</div>
+                    <div class="info-value">
+                        {{ profile.district or 'Not set' }}
+                    </div>
+                </div>
+    
+                <div class="info-item">
+                    <div class="info-label">Language</div>
+                    <div class="info-value">
+                        {{ profile.language or 'English' }}
+                    </div>
+                </div>
+    
+            </div>
+    
+            <div class="btn-row">
+    
+                <a
+                    href="{{ url_for('profile.edit_profile') }}"
+                    class="btn-profile btn-edit">
+                    Edit Profile
+                </a>
+    
+                <form
+                    action="{{ url_for('profile.upload_photo') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    style="display:inline-flex; align-items:center; gap:8px;">
+    
+                    <input
+                        type="file"
+                        name="photo"
+                        accept="image/*"
+                        id="photoInput"
+                        style="display:none"
+                        onchange="this.form.submit();">
+    
+                    <label
+                        for="photoInput"
+                        class="btn-profile btn-upload"
+                        style="cursor:pointer;">
+                        Upload Photo
+                    </label>
+    
+                </form>
+    
+            </div>
+    
+        </div>
+    
+    </div>
+    
+    </body>
+</html>
