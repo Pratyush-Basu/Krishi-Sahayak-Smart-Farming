@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction History — Krishi-Sahayak</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f4fdf4;
+            font-family: "Segoe UI", sans-serif;
+            color: #333;
+        }
+        .history-header {
+            background: rgba(34, 139, 34, 0.95);
+            color: #fff;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .history-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        .history-header a {
+            color: #c8e6c9;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .history-header a:hover { color: #fff; }
+        .section-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .section-card h3 {
+            color: #2e7d32;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8f5e9;
+        }
+        .empty-msg {
+            color: #888;
+            font-style: italic;
+        }
+        .badge-confidence {
+            background: #4CAF50;
+        }
+        .treatment-details {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<!-- <header class="history-header">
+    <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+    <h2>📋 Prediction History</h2>
+</header> -->
+<h2 class="text-center mt-4">📋 Prediction History</h2>
+
+
+<div class="container my-4">
+
+    <p class="text-muted mb-4">
+        All your past crop, fertilizer, and disease predictions are listed below.
+    </p>
+
+    <div class="row mb-4">
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <h5>🌾 Crop Predictions</h5>
+                    <h2>{{ crop_predictions|length }}</h2>
+                </div>
+            </div>
+        </div>
+    
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 bg-warning">
+                <div class="card-body text-center">
+                    <h5>🧪 Fertilizer Plans</h5>
+                    <h2>{{ fertilizer_predictions|length }}</h2>
+                </div>
+            </div>
+        </div>
+    
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0 bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5>🌿 Disease Predictions</h5>
+                    <h2>{{ disease_predictions|length }}</h2>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+
+    <div class="row mb-3">
+
+        <div class="col-md-6">
+        
+        <input
+        type="text"
+        id="historySearch"
+        class="form-control"
+        placeholder="🔍 Search crop, fertilizer or disease...">
+        
+        </div>
+        
+        </div>
+
+    <!-- Crop Predictions -->
+    <div class="section-card">
+        <h3>🌾 Crop Predictions</h3>
+        {% if crop_predictions %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-center align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Date</th>
+                        <th>Crop</th>
+                        <th>Confidence</th>
+                        <th>N</th>
+                        <th>P</th>
+                        <th>K</th>
+                        <th>Temp</th>
+                        <th>Humidity</th>
+                        <th>pH</th>
+                        <th>Rainfall</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in crop_predictions %}
+                    <tr>
+                        <td>{{ record.created_at.strftime('%d %b %Y, %H:%M') if record.created_at else '—' }}</td>
+                        <td><strong>{{ record.predicted_crop|capitalize }}</strong></td>
+                        <td style="min-width:180px">
+
+                            <div class="progress">
+                            
+                            <div class="progress-bar bg-success"
+                            
+                            style="width: {{ record.confidence }}%;">
+                            
+                            {{ record.confidence|round(1) }}%
+                            
+                            </div>
+                            
+                            </div>
+                            
+                            </td>
+                        <td>{{ record.nitrogen }}</td>
+                        <td>{{ record.phosphorus }}</td>
+                        <td>{{ record.potassium }}</td>
+                        <td>{{ record.temperature }}</td>
+                        <td>{{ record.humidity }}</td>
+                        <td>{{ record.ph }}</td>
+                        <td>{{ record.rainfall }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-msg">No crop predictions yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Fertilizer Predictions -->
+    <div class="section-card">
+        <h3>🧪 Fertilizer Predictions</h3>
+        {% if fertilizer_predictions %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Date</th>
+                        <th>Crop</th>
+                        <th>Area (acre)</th>
+                        <th>N / P / K</th>
+                        <th>Recommended</th>
+                        <th>Dosage</th>
+                        <th>Language</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in fertilizer_predictions %}
+                    <tr>
+                        <td>{{ record.created_at.strftime('%d %b %Y, %H:%M') if record.created_at else '—' }}</td>
+                        <td><strong>{{ record.crop_type|capitalize }}</strong></td>
+                        <td>{{ record.land_area_acre }}</td>
+                        <td>{{ record.nitrogen }} / {{ record.phosphorus }} / {{ record.potassium }}</td>
+                        <td>{{ record.recommended_fertilizer }}</td>
+                        <td>{{ record.dosage }}</td>
+                        <td>{{ record.language|capitalize }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-msg">No fertilizer predictions yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Disease Predictions -->
+    <div class="section-card">
+        <h3>🌿 Disease Predictions</h3>
+        {% if disease_predictions %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Date</th>
+                        <th>Image</th>
+                        <th>Disease</th>
+                        <th>Confidence</th>
+                        <th>Treatment Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in disease_predictions %}
+                    <tr>
+                        <td>{{ record.created_at.strftime('%d %b %Y, %H:%M') if record.created_at else '—' }}</td>
+                        <td>{{ record.image_name }}</td>
+                        <td><strong>{{ record.disease_name|replace('_', ' ')|title }}</strong></td>
+                        <td style="min-width:180px">
+
+                            <div class="progress">
+                            
+                            <div class="progress-bar bg-success"
+                            
+                            style="width: {{ record.confidence }}%;">
+                            
+                            {{ record.confidence|round(1) }}%
+                            
+                            </div>
+                            
+                            </div>
+                            
+                            </td>
+                        <td>{{ record.treatment_summary }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-msg">No disease predictions yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="text-center mt-4">
+        <address class="btn btn-success" onclick="window.print()">
+            🖨 Print Result
+        </address>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+            ⬅ Back to Dashboard
+        </a>
+    
+    </div>
+
+</div>
+
+</body>
+    <script>
+
+document.getElementById("historySearch")
+.addEventListener("keyup", function () {
+
+let value = this.value.toLowerCase();
+
+document.querySelectorAll("tbody tr").forEach(row => {
+
+let text = row.innerText.toLowerCase();
+
+row.style.display =
+text.includes(value)
+? ""
+: "none";
+
+});
+
+});
+
+</script>
+</html>

@@ -162,6 +162,10 @@ def _register_blueprints(app):
     app.register_blueprint(profile_bp)
     app.register_blueprint(settings_bp)
 
+    # ── Prediction History Blueprint ─────────────────────────────────
+    from routes.history import history_bp
+    app.register_blueprint(history_bp)
+
 
 def _register_error_handlers(app):
     """Register friendly error pages for 403, 404, 500."""

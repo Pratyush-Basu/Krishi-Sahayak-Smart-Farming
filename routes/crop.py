@@ -15,6 +15,7 @@ import json
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from utils.decorators import login_required
 from utils.session_manager import get_current_user
+from services.mongodb_service import save_crop_prediction
 
 crop_bp = Blueprint("crop", __name__)
 
@@ -54,6 +55,21 @@ def predict():
         if "error" in result:
             return render_template("crop/index.html",
                                    prediction_text=f"Error: {result['error']}")
+
+        user = get_current_user()
+        if user:
+            save_crop_prediction(
+                user_id=user["uid"],
+                nitrogen=form_values.get("Nitrogen", 0),
+                phosphorus=form_values.get("Phosphorus", 0),
+                potassium=form_values.get("Potassium", 0),
+                temperature=form_values.get("temperature", 0),
+                humidity=form_values.get("humidity", 0),
+                ph=form_values.get("ph", 0),
+                rainfall=form_values.get("rainfall", 0),
+                predicted_crop=result["top_crop"],
+                confidence=result["values"][0] if result.get("values") else 0,
+            )
 
         return render_template(
             "crop/index.html",

@@ -18,7 +18,9 @@ from flask import (
 from werkzeug.utils import secure_filename
 from utils.decorators import login_required
 from utils.helpers import allowed_file
+from utils.session_manager import get_current_user
 from services.gemini_service import generate_disease_treatment
+from services.mongodb_service import save_disease_prediction
 
 disease_bp = Blueprint("disease", __name__)
 
@@ -86,6 +88,17 @@ def predict():
 
         # Get Gemini treatment suggestions
         treatment_summary, treatment_details = generate_disease_treatment(plant_type, disease)
+
+        user = get_current_user()
+        if user:
+            save_disease_prediction(
+                user_id=user["uid"],
+                image_name=filename,
+                disease_name=disease,
+                confidence=confidence,
+                treatment_summary=treatment_summary,
+                treatment_details=treatment_details,
+            )
 
         return render_template(
             "disease/index.html",

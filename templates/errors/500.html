@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>500 — Server Error | Krishi-Sahayak</title>
+
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-            color: #333;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,27 +16,31 @@
             margin: 0;
             flex-direction: column;
             text-align: center;
-            padding: 20px;
         }
-        .code { font-size: 6rem; font-weight: bold; color: #c62828; }
-        h2 { color: #2e7d32; }
-        p { color: #666; max-width: 400px; }
+
+        .code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        h2 {
+            color: #ccc;
+        }
+
         a {
-            color: #fff;
-            background: #2e7d32;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            margin-top: 16px;
-            display: inline-block;
+            color: #7ddc7d;
         }
-        a:hover { background: #1b5e20; }
     </style>
 </head>
+
 <body>
     <div class="code">500</div>
+
     <h2>Internal Server Error</h2>
+
     <p>Something went wrong on our end. Please try again later.</p>
-    <a href="{{ url_for('main.index') }}">← Go to Home</a>
+
+    <a href="/">← Go to Home</a>
 </body>
 </html>

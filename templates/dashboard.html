@@ -10,8 +10,119 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/log.css') }}" />
+          
 
 </head>
+<style>
+    .features{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:25px;
+    margin:40px auto;
+}
+
+.features .card{
+
+    background:#fff;
+
+    border:1px solid #dce8dc;
+
+    border-radius:12px;
+
+    padding:30px;
+
+    transition:.25s;
+
+    position:relative;
+
+    overflow:hidden;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+}
+
+.features .card:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+
+    border-color:#2e7d32;
+
+}
+
+/* Left Green Strip */
+
+.features .card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:6px;
+
+    height:100%;
+
+    background:#2e7d32;
+
+}
+
+/* Heading */
+
+.features .card h3{
+
+    font-size:22px;
+
+    color:#1b5e20;
+
+    margin-bottom:15px;
+
+    font-weight:700;
+
+}
+
+/* Description */
+
+.features .card p{
+
+    color:#555;
+
+    line-height:1.7;
+
+    margin-bottom:25px;
+
+}
+
+/* Button */
+
+.features .card button{
+
+    border:none;
+
+    border-radius:6px;
+
+    padding:10px 20px;
+
+    background:#2e7d32;
+
+    color:white;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.features .card button:hover{
+
+    background:#1b5e20;
+
+}
+</style>
 
 <body>
 
@@ -50,6 +161,12 @@
             <li>
                 <a href="{{ url_for('mandi.mandi_page') }}">
                     Live Mandi Price
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('history.history_page') }}">
+                    History
                 </a>
             </li>
 
@@ -154,7 +271,7 @@
         </button>
     </div>
 
-    <div class="card">
+    <!--<div class="card">
         <h3>💰 Mandi Prices</h3>
         <p>Live agricultural market prices.</p>
 
@@ -164,7 +281,7 @@
         </button>
     </div>
 
-    <!--<div class="card">
+    <div class="card">
         <h3>🤖 AI Chatbot</h3>
         <p>Ask farming questions anytime.</p>
 
@@ -201,6 +318,11 @@
     <h3>⚙️ Settings</h3>
     <a href="{{ url_for('settings.settings_page') }}">
         App Settings
+    </a>
+
+    <h3>📋 Prediction History</h3>
+    <a href="{{ url_for('history.history_page') }}">
+        View History
     </a>
 
 </div>

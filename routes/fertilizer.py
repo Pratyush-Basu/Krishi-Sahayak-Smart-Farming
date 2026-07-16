@@ -12,7 +12,9 @@ Business logic delegated to:
 
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from utils.decorators import login_required
+from utils.session_manager import get_current_user
 from services.gemini_service import generate_fertilizer_explanation
+from services.mongodb_service import save_fertilizer_prediction
 
 fertilizer_bp = Blueprint("fertilizer", __name__)
 
@@ -75,6 +77,20 @@ def fertilizer_result():
         ideal=result["ideal"], fertilizer=result["fertilizer"],
         language=language,
     )
+
+    user = get_current_user()
+    if user:
+        save_fertilizer_prediction(
+            user_id=user["uid"],
+            crop_type=crop,
+            land_area_acre=area,
+            nitrogen=soil["N"],
+            phosphorus=soil["P"],
+            potassium=soil["K"],
+            language=language,
+            fertilizer=result["fertilizer"],
+            ai_explanation=ai_explanation,
+        )
 
     return render_template(
         "crop/fertilizer_result.html",

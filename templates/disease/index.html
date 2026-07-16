@@ -341,7 +341,7 @@
 
         <div class="text-center mt-4">
             <a href="/disease" class="btn btn-outline-success me-2">
-                🔁 New Calculation
+                🔁 New Prediction
             </a>
             <address class="btn btn-success" onclick="window.print()">
                 🖨 Print Result
@@ -356,6 +356,8 @@
             <p><b>© 2025 Krishi - সহায়ক</b></p>
         </footer>
     </div>
+
+    
 
     <script>
         function previewImage(event) {
@@ -416,11 +418,22 @@
 
         document.getElementById("uploadForm").addEventListener("submit", function () {
 
-if(document.getElementById("fileInput").files.length===0){
+const fileInput = document.getElementById("fileInput");
+
+if (fileInput.files.length === 0) {
     return;
 }
 
-document.getElementById("loadingOverlay").style.display="flex";
+const btn = this.querySelector("button[type='submit']");
+
+btn.disabled = true;
+
+btn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2"></span>
+    Analyzing...
+`;
+
+document.getElementById("loadingOverlay").style.display = "flex";
 
 });
     </script>

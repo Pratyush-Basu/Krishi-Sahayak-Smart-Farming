@@ -6,6 +6,199 @@
   <title>Smart Agriculture</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
 </head>
+<style>
+    .hero h1 {
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 2rem;
+    }
+
+    /* ===========================================
+   Modern Feature Cards
+=========================================== */
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:30px;
+    margin-top:50px;
+}
+
+.card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    padding:35px 30px;
+
+    border-radius:20px;
+
+    background:linear-gradient(135deg,#ffffff,#eefaf0);
+
+    border:1px solid rgba(46,125,50,.15);
+
+    box-shadow:0 12px 35px rgba(0,0,0,.08);
+
+    transition:.4s;
+
+    cursor:pointer;
+
+}
+
+.card::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:-60px;
+
+    right:-60px;
+
+    width:140px;
+
+    height:140px;
+
+    background:linear-gradient(135deg,#66bb6a,#2e7d32);
+
+    opacity:.08;
+
+    border-radius:50%;
+
+    transition:.5s;
+
+}
+
+.card::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    bottom:0;
+
+    width:100%;
+
+    height:5px;
+
+    background:linear-gradient(90deg,#2e7d32,#66bb6a,#81c784);
+
+    transform:scaleX(0);
+
+    transition:.4s;
+
+    transform-origin:left;
+
+}
+
+.card:hover{
+
+    transform:translateY(-12px);
+
+    box-shadow:0 20px 45px rgba(46,125,50,.25);
+
+}
+
+.card:hover::after{
+
+    transform:scaleX(1);
+
+}
+
+.card:hover::before{
+
+    transform:scale(1.4);
+
+}
+
+.card h3{
+
+    font-size:22px;
+
+    color:#1b5e20;
+
+    margin-bottom:18px;
+
+    font-weight:700;
+
+}
+
+.card p{
+
+    color:#555;
+
+    font-size:15px;
+
+    line-height:1.8;
+
+}
+
+/* Icon Circle */
+
+.card h3::before{
+
+    display:inline-flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    width:52px;
+
+    height:52px;
+
+    margin-right:12px;
+
+    border-radius:50%;
+
+    background:linear-gradient(135deg,#4CAF50,#2e7d32);
+
+    color:white;
+
+    font-size:22px;
+
+}
+
+/* Individual Icons */
+
+.card:nth-child(1) h3::before{
+    content:"🌾";
+}
+
+.card:nth-child(2) h3::before{
+    content:"🧪";
+}
+
+.card:nth-child(3) h3::before{
+    content:"🌿";
+}
+
+.card:nth-child(4) h3::before{
+    content:"💧";
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+.card{
+
+    padding:28px 22px;
+
+}
+
+.card h3{
+
+    font-size:20px;
+
+}
+
+}
+</style>
     
 <body>
     
@@ -73,19 +266,19 @@
     <p>Powered by AI and IoT to revolutionize agriculture.</p>
     <div class="cards">
       <div class="card fade-in">
-        <h3>🌾 Crop Recommendation</h3>
+        <h3>Crop Recommendation</h3>
          <p>AI-powered system recommends the best crop to grow based on environmental conditions.</p>
       </div>
       <div class="card fade-in">
-        <h3>🧪 Fertilizer Guide</h3>
+        <h3>Fertilizer Guide</h3>
         <p>Get precise fertilizer recommendations based on soil nutrient levels and crop type.</p>
       </div>
       <div class="card fade-in">
-        <h3>🩺 Disease Detection</h3>
+        <h3>Disease Detection</h3>
         <p>Upload leaf images for instant AI diagnosis using CNN deep learning with treatment suggestions.</p>
       </div>
       <div class="card fade-in">
-        <h3>💧 Smart Irrigation</h3>
+        <h3>Smart Irrigation</h3>
         <p>IoT-based system using automated sensors to monitor soil moisture and conserve water.</p>
       </div>
     </div>
